@@ -1,0 +1,23 @@
+# 要件区分
+
+| 区分 | 内容 | 根拠 |
+| --- | --- | --- |
+| 確定 | 5画面: ホーム・予算・入力・収支一覧・設定 | SPEC 1、UI_SPEC |
+| 確定 | 基本予算＋項目別振分、収入/支出区別、連続入力・直前取消・一覧編集削除 | SPEC、UI_SPEC、TEST_PLAN |
+| 確定 | 独立プール・手動配分・月別推移・配分を収支に含めない | SPEC 4 |
+| 確定 | 過去修正の後続残高反映、履歴保持、残高不足警告 | SPEC 4、DATA_MODEL |
+| 確定 | 単一目標、変更解除、達成率・不足額・通知、目標履歴 | SPEC 5、CHANGELOG |
+| 確定 | 定期支出の予定は実績外、手動確定 | SPEC 2 |
+| 確定 | CSVとJSON完全バックアップ/復元、オフライン、IndexedDB | SPEC、ARCHITECTURE |
+| 確定構成 | 静的HTML/CSS/JS、Manifest・Service Worker、非破壊DB移行、入力中の強制更新禁止 | ARCHITECTURE |
+| 出力仕様 | CSV UTF-8 BOM・ISO日付・数値金額・数式注入対策、JSON版/日時/全ストア/検証情報 | ARCHITECTURE |
+| UI要件 | 412dp基準、1行一覧、固定ナビ、編集固定フッター | UI_SPEC。操作領域44〜48pxは目安 |
+| 未承認案 | 収入の予算非連動、プラス残額のみ・総額繰越、6項目直接表示、80/100%警告、超過振分禁止 | SPEC 7、OPEN_QUESTIONS |
+| 設計案 | IndexedDBのストア・キー・型・索引、初期ソース構成 | DATA_MODEL、ARCHITECTURE |
+| 任意拡張 | 名称履歴候補 | UI_SPEC |
+| 将来 | 目標達成予定月推定 | SPEC、ROADMAP |
+| 初期対象外 | 端末間サーバー同期、終了中の確実なプッシュ通知 | SPEC、ARCHITECTURE |
+
+定期収入はOPEN_QUESTIONS 6で未確定です。UI_SPECの「定期収支設定」やDATA_MODELのincome型、TEST_PLANの「定期収支」見出しを実装承認とみなしません。
+
+原文の要件は保持し、未承認の初期値・物理モデル・任意拡張を確定扱いしません。ホスティングはGitHub Pages等の想定であり、具体的な登録先・公開先は未指定です。
