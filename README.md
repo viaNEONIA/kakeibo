@@ -1,9 +1,9 @@
 # 簡易家計簿 PWA — 開発管理移行パッケージ
 
 - 基準仕様: v1.3（2026-10-19時点）
-- 状態: 設計段階、アプリ本体未実装
+- 状態: I04基盤実装済み（0.1.0-dev）。収支入力・予算等は後続工程。
 - 管理原則: GitHubのmainを検証済み正本とする。ChatGPT Workは実装・検証、通常チャットは仕様検討。
-- このパッケージは**移行用の仕様・管理資料**であり、稼働するアプリではない。
+- 現在は保存・バックアップ/復元・オフライン起動を確認できる基盤版です。完成した家計簿ではありません。
 
 ## ドキュメント
 - `docs/SPEC.md` 正式仕様
@@ -38,12 +38,12 @@
 
 - Issue #1〜#10を登録。対応表は[Issue管理](docs/ISSUE_DRAFTS.md)を参照。
 - 登録済み未確定は0件。繰越計算と保留方式の承認済み内容は[決定記録](docs/CARRYOVER_DECISION.md)を参照。[繰越計算・締め・過去修正](https://github.com/viaNEONIA/kakeibo/issues/1)は本変更のmain反映で仕様決定完了。[UI・通知・運用条件](https://github.com/viaNEONIA/kakeibo/issues/2)も仕様決定完了です。
-- 初期実装は未着手。将来の目標達成予定月推定は初期リリース対象外。
+- I04基盤を実装済み、収支・予算等は未着手。将来の目標達成予定月推定は初期リリース対象外。
 - 管理整備の変更はdocs/github-management-setupからPRで確認しmainへ統合する運用。
 
 ## UI・運用・期間設定の決定
 
-[OPERATIONS_DECISION](docs/OPERATIONS_DECISION.md)に承認内容・受入条件を整理。集計期間設定の境界と利用途中変更も承認済み。Issue #2は本変更のmain反映で仕様決定として完了。Issue #3の物理設計・計算仕様は本変更で文書化。本体実装は未着手です。
+[OPERATIONS_DECISION](docs/OPERATIONS_DECISION.md)に承認内容・受入条件を整理。集計期間設定の境界と利用途中変更も承認済み。Issue #2は本変更のmain反映で仕様決定として完了。Issue #3の物理設計・計算仕様は本変更で文書化。本体はI04基盤を実装済み（業務UIは未実装）です。
 
 ## I03設計資料
 
@@ -51,4 +51,8 @@
 - [計算単体仕様](docs/CALCULATION_SPEC.md): 期間・返金・再精算・固定数値例。
 - [保存プロトコル](docs/STORAGE_PROTOCOL.md): 原子的更新、重複防止、2タブ競合、全量復元、版移行。
 
-I03は設計文書の工程。実装・DB/実機試験はI04以降の別工程です。
+I03は設計文書の工程。I04の基盤実装・DB試験は後述。実機試験は未実施です。
+
+## 基盤の起動と検証
+
+[実装状態と起動手順](docs/IMPLEMENTATION_STATUS.md)、[I04試験結果](docs/TEST_RESULTS_I04.md)を参照。npm ci → npm test、npm run serveでローカル起動できます。通常利用は外部パッケージ不要。Android/iPhone実機試験は未実施です。

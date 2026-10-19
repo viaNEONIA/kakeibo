@@ -1,0 +1,15 @@
+{
+  "name": "kakeibo-pwa",
+  "version": "0.1.0-dev",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "serve": "python3 -m http.server 4173",
+    "test:browser": "node tests/browser.mjs"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "^6.2.6",
+    "playwright": "^1.64.1"
+  }
+}

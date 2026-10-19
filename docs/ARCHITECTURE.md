@@ -37,4 +37,8 @@ JSON復元は全量上書きのみ、型・必須値・参照・重複ID/未知�
 
 ## I03の保存・計算設計
 
-[DATA_MODEL](DATA_MODEL.md)は17ストアとキー/索引/参照、[CALCULATION_SPEC](CALCULATION_SPEC.md)は期間・純支出・精算の入出力、[STORAGE_PROTOCOL](STORAGE_PROTOCOL.md)は原子的更新・再試行・競合・復元・移行を定義する。未精算額は導出値、期間はUUIDで識別する。ソースコード・DB雛形は追加しない。
+[DATA_MODEL](DATA_MODEL.md)は17ストアとキー/索引/参照、[CALCULATION_SPEC](CALCULATION_SPEC.md)は期間・純支出・精算の入出力、[STORAGE_PROTOCOL](STORAGE_PROTOCOL.md)は原子的更新・再試行・競合・復元・移行を定義する。未精算額は導出値、期間はUUIDで識別する。I03時点ではソースコード・DB雛形を追加していない。I04の実装範囲は後述。
+
+## I04実装
+
+静的シェル、js/schema.js・validation.js・db.js・app.js、sw.jsを実装。DB/バックアップ形式v1、全量復元と競合制御を備える。具体範囲と限界は[IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md)、検証は[TEST_RESULTS_I04](TEST_RESULTS_I04.md)参照。後続の業務コマンドは未実装。
