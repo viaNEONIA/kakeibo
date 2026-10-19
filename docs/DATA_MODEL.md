@@ -61,3 +61,8 @@ periodClosings.settlementTotalはその期間ですでに反映した精算額�
 ## I04で固定したバックアップ履歴の形
 
 budgetRevisionsのbefore/afterは{baseBudget,categoryBudgets:[{categoryId,amount}]}。closingRevisionsはcloseRevisionを1から連番で持ち、期間内のpreviousTotal→newTotalの連鎖と最終反映額を復元時に検証する。settings.preferences.valueはstartDayとwarningPercentを含む（初期1と80、注意閾値の入力範囲1〜99%）。optional一意参照はnullでなく未設定フィールドとして扱う。meta.stateにdatasetId/datasetRevision/ledgerSequence、meta.schemaInfo.valueにdbSchemaVersionを保持。復元時はmeta.stateへrestoredFromDatasetId/restoredAtを追加し新世代へ切替。
+
+## I05業務保存の追補
+
+js/domain.jsで項目・並び替え・一覧表示設定と収支の登録/編集/削除を実装。settings.listView.valueは{sort:date-desc|date-asc|amount-desc|amount-asc,showDate:boolean,showCategory:boolean}。旧バックアップでlistViewがない場合は日付新順・日付/項目表示を初期表示として使用する。DB版とバックアップ版は1を維持。
+取引の日付所属は固定periodId、期間生成は欠落なしに接続、前方向追加時の内部sequenceは日付順へ再設定するが既存ID/境界は不変。締め済み期間の修正はclosingRevisionsとsettle差額を原子的に追加し、未精算額を別途保存しない。項目は無効化して参照を残す。

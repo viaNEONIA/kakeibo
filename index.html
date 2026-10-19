@@ -1,20 +1,390 @@
 <!doctype html>
 <html lang="ja">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#24483e">
-<title>簡易家計簿</title><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icons/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./icons/icon-192.png"><link rel="stylesheet" href="./css/style.css">
-</head>
-<body>
-<header><span class="eyebrow">KAKEIBO</span><h1>簡易家計簿</h1><p>毎日の暮らしを、少しずつ記録。</p><span id="network" class="badge" role="status"></span></header>
-<main>
-<section class="intro"><span class="badge">基盤確認版 0.1.0-dev</span><h2>データを守る準備から。</h2><p>保存・バックアップ・復元を確認できる最初の開発版です。収支入力と予算管理は今後追加します。</p></section>
-<section aria-labelledby="storage-title"><h2 id="storage-title">保存の状態</h2><p id="db-status" role="status">準備しています…</p><p id="offline-status" class="hint" role="status">オフラインの準備を確認しています…</p><dl><div><dt>保存先</dt><dd>この端末のブラウザ</dd></div><div><dt>保存件数</dt><dd id="record-count">—</dd></div><div><dt>最終バックアップ</dt><dd id="last-backup">この画面では未作成</dd></div></dl><p class="hint">ブラウザのデータ削除で記録が失われることがあります。バックアップを端末に保存してください。</p></section>
-<section aria-labelledby="preferences-title"><h2 id="preferences-title">表示設定</h2><form id="preferences"><label for="warning-percent">予算の注意表示（%）</label><div class="inline"><input id="warning-percent" type="number" min="1" max="99" step="1" required value="80" inputmode="numeric"><button id="save" disabled>保存</button></div><p class="hint">保存と再起動後の保持を確認できます。予算機能の追加後に使用します。</p></form></section>
-<section aria-labelledby="backup-title"><h2 id="backup-title">バックアップと復元</h2><p>設定・記録・履歴をまとめて保存します。</p><button id="backup" class="primary" disabled>JSONバックアップを保存</button><label class="file-label" for="restore-file">バックアップファイルを選ぶ</label><input id="restore-file" type="file" accept=".json,application/json" disabled><p class="hint">復元は現在のデータをすべて置き換えます。先に現在のバックアップを保存してください。</p></section>
-<section id="update-panel" hidden><h2>新しいバージョンがあります</h2><p>編集中の内容を保存してから更新してください。</p><button id="update">保存していない変更を破棄して更新</button></section>
-<p id="message" class="message" role="status" aria-live="polite"></p><button id="reload" hidden>最新のデータを読み込む</button>
-<footer>初回のオンライン起動後はオフラインでも使えます。<br>iPhoneはSafariの共有から「ホーム画面に追加」。</footer>
-</main>
-<dialog id="restore-dialog" aria-labelledby="restore-title"><h2 id="restore-title">現在のデータを置き換えます</h2><p id="restore-summary"></p><p>現在のバックアップを保存してから実行してください。この操作は取り消せません。</p><div class="actions"><button id="cancel-restore">キャンセル</button><button id="confirm-restore" class="danger">全量上書きで復元</button></div></dialog>
-<noscript>このアプリにはJavaScriptが必要です。</noscript><script type="module" src="./js/app.js"></script>
-</body></html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#24483e" />
+    <title>簡易家計簿</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <header>
+      <span class="eyebrow">KAKEIBO</span>
+      <h1>簡易家計簿</h1>
+      <span id="network" class="badge" role="status"></span>
+    </header>
+    <main>
+      <section id="screen-home" class="screen" aria-label="ホーム">
+        <div class="hero">
+          <span id="home-period" class="eyebrow"></span>
+          <h2>暮らしの記録</h2>
+          <p id="home-range"></p>
+          <div class="summary">
+            <div><span>収入</span><strong id="home-income">0円</strong></div>
+            <div>
+              <span>支出（返金差引）</span
+              ><strong id="home-expense">0円</strong>
+            </div>
+          </div>
+          <div class="net">
+            <span>収支</span><strong id="home-net">0円</strong>
+          </div>
+        </div>
+        <div class="quick-actions">
+          <button id="home-input" class="primary">＋ 収支を入力</button
+          ><button id="home-list">一覧を見る</button>
+        </div>
+        <section>
+          <h2>最近の記録</h2>
+          <div id="recent-list"></div>
+          <p class="hint">
+            予算・繰越・定期収支は今後の対応です。この版では収支と項目を管理できます。
+          </p>
+        </section>
+      </section>
+      <section id="screen-budget" class="screen" aria-label="予算" hidden>
+        <div class="empty-state">
+          <span class="eyebrow">BUDGET</span>
+          <h2>予算管理は準備中です</h2>
+          <p>
+            現在は収支入力・一覧・項目管理を利用できます。記録したデータは、予算機能の追加後も引き継ぎます。
+          </p>
+        </div>
+      </section>
+      <section id="screen-input" class="screen" aria-label="入力" hidden>
+        <form id="transaction-form" novalidate>
+          <div class="segmented" id="transaction-types">
+            <button type="button" data-type="expense" aria-pressed="true">
+              支出</button
+            ><button type="button" data-type="income" aria-pressed="false">
+              収入</button
+            ><button type="button" data-type="refund" aria-pressed="false">
+              返金
+            </button>
+          </div>
+          <div class="amount-entry">
+            <label for="amount">金額</label>
+            <div class="amount-line">
+              <input
+                id="amount"
+                type="text"
+                inputmode="none"
+                readonly
+                placeholder="0"
+                autocomplete="off"
+                aria-describedby="amount-help"
+              /><span>円</span>
+            </div>
+            <span id="amount-help" class="sr-only"
+              >下の専用テンキーで入力。1円から999,999,999円。</span
+            >
+          </div>
+          <div class="compact-fields">
+            <label
+              >日付<input id="transaction-date" type="date" required /></label
+            ><label
+              >名称（任意）<input
+                id="transaction-name"
+                type="text"
+                autocomplete="off"
+            /></label>
+          </div>
+          <div class="category-heading">
+            <label>項目</label
+            ><button type="button" id="manage-from-input" class="text-button">
+              管理
+            </button>
+          </div>
+          <div id="category-buttons" class="category-grid"></div>
+          <div id="more-categories" hidden>
+            <label for="category-select">すべての項目</label
+            ><select id="category-select"></select>
+          </div>
+          <details class="memo">
+            <summary>メモを追加</summary>
+            <textarea id="transaction-memo" rows="2"></textarea>
+          </details>
+          <div id="keypad" class="keypad" aria-label="金額テンキー">
+            <button type="button" data-key="7">7</button
+            ><button type="button" data-key="8">8</button
+            ><button type="button" data-key="9">9</button
+            ><button type="button" data-key="4">4</button
+            ><button type="button" data-key="5">5</button
+            ><button type="button" data-key="6">6</button
+            ><button type="button" data-key="1">1</button
+            ><button type="button" data-key="2">2</button
+            ><button type="button" data-key="3">3</button
+            ><button type="button" data-key="0">0</button
+            ><button type="button" data-key="00">00</button
+            ><button type="button" data-key="backspace" aria-label="1文字削除">
+              ⌫
+            </button>
+          </div>
+          <div class="input-actions">
+            <button type="button" id="clear-amount">クリア</button
+            ><button id="register" class="primary" disabled>支出を登録</button>
+          </div>
+        </form>
+        <button id="undo" class="undo" hidden>直前の登録を取り消す</button>
+      </section>
+      <section id="screen-list" class="screen" aria-label="一覧" hidden>
+        <div class="section-heading">
+          <h2>収支一覧 <small id="list-count"></small></h2>
+          <button id="list-add" class="text-button">＋ 入力</button>
+        </div>
+        <details id="filters">
+          <summary>絞り込み・表示設定</summary>
+          <form id="filter-form">
+            <label class="wide"
+              >名称・項目・メモ<input
+                id="filter-query"
+                type="search"
+                placeholder="検索"
+            /></label>
+            <div class="filter-grid">
+              <label
+                >収支<select id="filter-type">
+                  <option value="">すべて</option>
+                  <option value="expense">支出</option>
+                  <option value="income">収入</option>
+                  <option value="refund">返金</option>
+                </select></label
+              ><label
+                >項目<select id="filter-category">
+                  <option value="">すべて</option>
+                </select></label
+              ><label>開始日<input id="filter-from" type="date" /></label
+              ><label>終了日<input id="filter-to" type="date" /></label
+              ><label
+                >最低金額<input
+                  id="filter-min"
+                  type="number"
+                  inputmode="numeric"
+                  min="0"
+                  step="1" /></label
+              ><label
+                >最高金額<input
+                  id="filter-max"
+                  type="number"
+                  inputmode="numeric"
+                  min="0"
+                  step="1"
+              /></label>
+            </div>
+            <label class="check"
+              ><input
+                id="filter-recurring"
+                type="checkbox"
+              />定期収支のみ</label
+            >
+            <div class="filter-grid">
+              <label
+                >並び順<select id="list-sort">
+                  <option value="date-desc">日付が新しい順</option>
+                  <option value="date-asc">日付が古い順</option>
+                  <option value="amount-desc">金額が大きい順</option>
+                  <option value="amount-asc">金額が小さい順</option>
+                </select></label
+              >
+              <fieldset>
+                <legend>表示する項目</legend>
+                <label class="check"
+                  ><input id="show-date" type="checkbox" checked />日付</label
+                ><label class="check"
+                  ><input
+                    id="show-category"
+                    type="checkbox"
+                    checked
+                  />項目</label
+                >
+              </fieldset>
+            </div>
+            <div class="actions">
+              <button type="button" id="reset-filters">絞り込み解除</button
+              ><button type="button" id="save-view">表示設定を保存</button>
+            </div>
+          </form>
+        </details>
+        <p id="filter-error" class="error" role="status"></p>
+        <div id="transaction-list" class="transaction-list"></div>
+      </section>
+      <section id="screen-settings" class="screen" aria-label="設定" hidden>
+        <section>
+          <h2>項目管理</h2>
+          <div class="segmented" id="category-types">
+            <button
+              type="button"
+              data-category-type="expense"
+              aria-pressed="true"
+            >
+              支出の項目</button
+            ><button
+              type="button"
+              data-category-type="income"
+              aria-pressed="false"
+            >
+              収入の項目
+            </button>
+          </div>
+          <button id="add-category" class="primary">＋ 項目を追加</button>
+          <div id="category-list"></div>
+          <p class="hint">
+            無効にした項目も過去の記録には残ります。矢印で表示順を変更できます。
+          </p>
+        </section>
+        <section>
+          <h2>データとアプリ</h2>
+          <p id="db-status" role="status">準備しています…</p>
+          <p id="offline-status" class="hint" role="status">
+            オフラインの準備を確認しています…
+          </p>
+          <dl>
+            <div>
+              <dt>保存先</dt>
+              <dd>この端末のブラウザ</dd>
+            </div>
+            <div>
+              <dt>保存件数</dt>
+              <dd id="record-count">—</dd>
+            </div>
+            <div>
+              <dt>バージョン</dt>
+              <dd>0.2.0-dev</dd>
+            </div>
+            <div>
+              <dt>最終バックアップ</dt>
+              <dd id="last-backup">この画面では未作成</dd>
+            </div>
+          </dl>
+        </section>
+        <section>
+          <h2>表示設定</h2>
+          <form id="preferences">
+            <label for="warning-percent">予算の注意表示（%）</label>
+            <div class="inline">
+              <input
+                id="warning-percent"
+                type="number"
+                min="1"
+                max="99"
+                step="1"
+                required
+                value="80"
+                inputmode="numeric"
+              /><button id="save" disabled>保存</button>
+            </div>
+          </form>
+        </section>
+        <section>
+          <h2>バックアップと復元</h2>
+          <p>設定・記録・履歴をまとめて保存します。</p>
+          <button id="backup" class="primary" disabled>
+            JSONバックアップを保存</button
+          ><label class="file-label" for="restore-file"
+            >バックアップファイルを選ぶ</label
+          ><input
+            id="restore-file"
+            type="file"
+            accept=".json,application/json"
+            disabled
+          />
+          <p class="hint">
+            復元は現在のデータをすべて置き換えます。先に現在のバックアップを保存してください。
+          </p>
+        </section>
+      </section>
+      <section id="update-panel" hidden>
+        <h2>新しいバージョンがあります</h2>
+        <p>編集中の内容を保存してから更新してください。</p>
+        <button id="update">保存していない変更を破棄して更新</button>
+      </section>
+      <p id="message" class="message" role="status" aria-live="polite"></p>
+      <button id="reload" hidden>最新のデータを読み込む</button>
+    </main>
+    <nav id="bottom-nav" aria-label="メイン">
+      <a href="#home" data-screen="home"
+        ><span aria-hidden="true">⌂</span>ホーム</a
+      ><a href="#budget" data-screen="budget"
+        ><span aria-hidden="true">▤</span>予算</a
+      ><a href="#input" data-screen="input"
+        ><span aria-hidden="true">＋</span>入力</a
+      ><a href="#list" data-screen="list"
+        ><span aria-hidden="true">≡</span>一覧</a
+      ><a href="#settings" data-screen="settings"
+        ><span aria-hidden="true">⚙</span>設定</a
+      >
+    </nav>
+    <dialog id="edit-dialog" aria-labelledby="edit-title">
+      <form id="edit-form">
+        <h2 id="edit-title">収支を編集</h2>
+        <label
+          >種類<select id="edit-type">
+            <option value="expense">支出</option>
+            <option value="income">収入</option>
+            <option value="refund">返金</option>
+          </select></label
+        ><label>日付<input id="edit-date" type="date" required /></label
+        ><label
+          >金額<input
+            id="edit-amount"
+            type="number"
+            min="1"
+            max="999999999"
+            step="1"
+            inputmode="numeric"
+            required /></label
+        ><label>項目<select id="edit-category" required></select></label
+        ><label>名称（任意）<input id="edit-name" type="text" /></label
+        ><label>メモ（任意）<textarea id="edit-memo" rows="2"></textarea></label
+        ><button
+          type="button"
+          id="delete-transaction"
+          data-write
+          class="delete-link"
+        >
+          この記録を削除
+        </button>
+        <div class="dialog-footer">
+          <button type="button" data-close="edit-dialog">閉じる</button
+          ><button type="submit" class="primary" data-write>保存</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="category-dialog" aria-labelledby="category-title">
+      <form id="category-form">
+        <h2 id="category-title">項目を追加</h2>
+        <label>項目名<input id="category-name" type="text" required /></label
+        ><label class="check"
+          ><input
+            id="category-active"
+            type="checkbox"
+            checked
+          />入力候補に表示する</label
+        >
+        <div class="dialog-footer">
+          <button type="button" data-close="category-dialog">閉じる</button
+          ><button type="submit" class="primary" data-write>保存</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="restore-dialog" aria-labelledby="restore-title">
+      <h2 id="restore-title">現在のデータを置き換えます</h2>
+      <p id="restore-summary"></p>
+      <p>
+        現在のバックアップを保存してから実行してください。この操作は取り消せません。
+      </p>
+      <div class="actions">
+        <button id="cancel-restore">キャンセル</button
+        ><button id="confirm-restore" class="danger">全量上書きで復元</button>
+      </div>
+    </dialog>
+    <noscript>このアプリにはJavaScriptが必要です。</noscript>
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>
