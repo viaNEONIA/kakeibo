@@ -31,16 +31,16 @@
 - [区分と未承認提案](docs/CLASSIFICATION.md)
 - [変更管理](CONTRIBUTING.md)
 
-初回レビューでは未解決16件でした。2026-10-19の承認で6件を解決し保留方式1件を分離、保留方式も承認済みとなり、旧残10件の承認後、追加の集計期間詳細2件が未確定です。詳細はMIGRATION_REVIEW参照。過去版それぞれの全文照合は未完了ですが、版別変更内容は添付CHANGELOGから確認できました。以前の推測不足版の管理資料より、本パッケージを優先します。
+初回レビューでは未解決16件でした。2026-10-19の承認で6件を解決し保留方式1件を分離、保留方式も承認済みとなり、旧残10件の承認後、追加の集計期間詳細2件も承認済みで、登録済み未確定は0件です。詳細はMIGRATION_REVIEW参照。過去版それぞれの全文照合は未完了ですが、版別変更内容は添付CHANGELOGから確認できました。以前の推測不足版の管理資料より、本パッケージを優先します。
 正本リポジトリ: https://github.com/viaNEONIA/kakeibo 。2026-10-19にmainの15文書をレビュー版と照合し一致を確認しました。ZIPは移行時点のスナップショットであり、今後はGitHubを唯一の正本として更新します。
 
 ## 現在の作業状態
 
 - Issue #1〜#10を登録。対応表は[Issue管理](docs/ISSUE_DRAFTS.md)を参照。
-- 未確定は集計期間詳細2件。繰越計算と保留方式の承認済み内容は[決定記録](docs/CARRYOVER_DECISION.md)を参照。[繰越計算・締め・過去修正](https://github.com/viaNEONIA/kakeibo/issues/1)は本変更のmain反映で仕様決定完了。残件は[UI・通知・運用条件](https://github.com/viaNEONIA/kakeibo/issues/2)で扱います。
+- 登録済み未確定は0件。繰越計算と保留方式の承認済み内容は[決定記録](docs/CARRYOVER_DECISION.md)を参照。[繰越計算・締め・過去修正](https://github.com/viaNEONIA/kakeibo/issues/1)は本変更のmain反映で仕様決定完了。残件は[UI・通知・運用条件](https://github.com/viaNEONIA/kakeibo/issues/2)で扱います。
 - 初期実装は未着手。将来の目標達成予定月推定は初期リリース対象外。
 - 管理整備の変更はdocs/github-management-setupからPRで確認しmainへ統合する運用。
 
 ## UI・運用・期間設定の決定
 
-[OPERATIONS_DECISION](docs/OPERATIONS_DECISION.md)に承認内容・受入条件を整理。集計期間設定の境界と利用途中変更は未確定案として分離。Issue #2はこの2件の解決まで継続します。
+[OPERATIONS_DECISION](docs/OPERATIONS_DECISION.md)に承認内容・受入条件を整理。集計期間設定の境界と利用途中変更も承認済み。Issue #2は本変更のmain反映で仕様決定として完了。次工程はIssue #3のデータ物理設計・計算仕様であり、本体実装は未着手です。
