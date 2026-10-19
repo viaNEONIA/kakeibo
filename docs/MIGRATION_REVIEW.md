@@ -1,4 +1,6 @@
-# 移行レビュー docs-review-1
+# 移行レビュー docs-review-1（履歴資料）
+
+> 本文は初回レビュー時点の比較・仮定を保存した履歴。2026-10-19のユーザー承認で原資・精算等を更新した。現行判断は[CARRYOVER_DECISION](CARRYOVER_DECISION.md)とOPEN_QUESTIONSを優先し、本文の「未確定」「正の残額のみ」例を現在の計算へ適用しない。未解決は11件。
 
 ## 結果
 
