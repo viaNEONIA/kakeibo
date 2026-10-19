@@ -1,6 +1,6 @@
 # DATA_MODEL — IndexedDB物理設計 v1
 
-対象: 正式仕様v1.3と承認済み追補。Issue #3の設計成果物。DB実装は未作成。プロダクト仕様はSPEC、OPERATIONS_DECISION、CARRYOVER_DECISIONを優先し、本書は保存方式を定義する。
+対象: 正式仕様v1.3と承認済み追補。Issue #3の設計成果物。I04でDB版1の生成とバックアップ/復元基盤を実装済み。業務コマンドは後続。プロダクト仕様はSPEC、OPERATIONS_DECISION、CARRYOVER_DECISIONを優先し、本書は保存方式を定義する。
 
 ## 型と共通制約
 
@@ -57,3 +57,7 @@ periodClosings.settlementTotalはその期間ですでに反映した精算額�
 ## 保存と復元
 
 一意操作ID、原子的な更新、複数タブの競合、スキーマ移行とJSON全量復元は[STORAGE_PROTOCOL](STORAGE_PROTOCOL.md)を参照。自動採番のローカル順序はmetaで確保し、トランザクション内で一意性を検証する。
+
+## I04で固定したバックアップ履歴の形
+
+budgetRevisionsのbefore/afterは{baseBudget,categoryBudgets:[{categoryId,amount}]}。closingRevisionsはcloseRevisionを1から連番で持ち、期間内のpreviousTotal→newTotalの連鎖と最終反映額を復元時に検証する。settings.preferences.valueはstartDayとwarningPercentを含む（初期1と80、注意閾値の入力範囲1〜99%）。optional一意参照はnullでなく未設定フィールドとして扱う。meta.stateにdatasetId/datasetRevision/ledgerSequence、meta.schemaInfo.valueにdbSchemaVersionを保持。復元時はmeta.stateへrestoredFromDatasetId/restoredAtを追加し新世代へ切替。
