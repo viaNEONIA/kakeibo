@@ -37,10 +37,18 @@
 ## 現在の作業状態
 
 - Issue #1〜#10を登録。対応表は[Issue管理](docs/ISSUE_DRAFTS.md)を参照。
-- 登録済み未確定は0件。繰越計算と保留方式の承認済み内容は[決定記録](docs/CARRYOVER_DECISION.md)を参照。[繰越計算・締め・過去修正](https://github.com/viaNEONIA/kakeibo/issues/1)は本変更のmain反映で仕様決定完了。残件は[UI・通知・運用条件](https://github.com/viaNEONIA/kakeibo/issues/2)で扱います。
+- 登録済み未確定は0件。繰越計算と保留方式の承認済み内容は[決定記録](docs/CARRYOVER_DECISION.md)を参照。[繰越計算・締め・過去修正](https://github.com/viaNEONIA/kakeibo/issues/1)は本変更のmain反映で仕様決定完了。[UI・通知・運用条件](https://github.com/viaNEONIA/kakeibo/issues/2)も仕様決定完了です。
 - 初期実装は未着手。将来の目標達成予定月推定は初期リリース対象外。
 - 管理整備の変更はdocs/github-management-setupからPRで確認しmainへ統合する運用。
 
 ## UI・運用・期間設定の決定
 
-[OPERATIONS_DECISION](docs/OPERATIONS_DECISION.md)に承認内容・受入条件を整理。集計期間設定の境界と利用途中変更も承認済み。Issue #2は本変更のmain反映で仕様決定として完了。次工程はIssue #3のデータ物理設計・計算仕様であり、本体実装は未着手です。
+[OPERATIONS_DECISION](docs/OPERATIONS_DECISION.md)に承認内容・受入条件を整理。集計期間設定の境界と利用途中変更も承認済み。Issue #2は本変更のmain反映で仕様決定として完了。Issue #3の物理設計・計算仕様は本変更で文書化。本体実装は未着手です。
+
+## I03設計資料
+
+- [データ物理設計](docs/DATA_MODEL.md): 17ストア、期間ID、索引、制約。
+- [計算単体仕様](docs/CALCULATION_SPEC.md): 期間・返金・再精算・固定数値例。
+- [保存プロトコル](docs/STORAGE_PROTOCOL.md): 原子的更新、重複防止、2タブ競合、全量復元、版移行。
+
+I03は設計文書の工程。実装・DB/実機試験はI04以降の別工程です。
