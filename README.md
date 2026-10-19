@@ -1,9 +1,9 @@
 # 簡易家計簿 PWA — 開発管理移行パッケージ
 
 - 基準仕様: v1.3（2026-10-19時点）
-- 状態: I04基盤実装済み（0.1.0-dev）。収支入力・予算等は後続工程。
+- 状態: I05収支入力・項目管理・一覧を実装（0.2.0-dev）。予算・繰越等は後続工程。
 - 管理原則: GitHubのmainを検証済み正本とする。ChatGPT Workは実装・検証、通常チャットは仕様検討。
-- 現在は保存・バックアップ/復元・オフライン起動を確認できる基盤版です。完成した家計簿ではありません。
+- 現在は収支入力・一覧・項目管理とバックアップ/復元を利用できます。予算・繰越等は開発途中です。
 
 ## ドキュメント
 - `docs/SPEC.md` 正式仕様
@@ -38,12 +38,12 @@
 
 - Issue #1〜#10を登録。対応表は[Issue管理](docs/ISSUE_DRAFTS.md)を参照。
 - 登録済み未確定は0件。繰越計算と保留方式の承認済み内容は[決定記録](docs/CARRYOVER_DECISION.md)を参照。[繰越計算・締め・過去修正](https://github.com/viaNEONIA/kakeibo/issues/1)は本変更のmain反映で仕様決定完了。[UI・通知・運用条件](https://github.com/viaNEONIA/kakeibo/issues/2)も仕様決定完了です。
-- I04基盤を実装済み、収支・予算等は未着手。将来の目標達成予定月推定は初期リリース対象外。
+- I04基盤とI05収支・項目管理を実装。予算・繰越等は後続。将来の目標達成予定月推定は初期リリース対象外。
 - 管理整備の変更はdocs/github-management-setupからPRで確認しmainへ統合する運用。
 
 ## UI・運用・期間設定の決定
 
-[OPERATIONS_DECISION](docs/OPERATIONS_DECISION.md)に承認内容・受入条件を整理。集計期間設定の境界と利用途中変更も承認済み。Issue #2は本変更のmain反映で仕様決定として完了。Issue #3の物理設計・計算仕様は本変更で文書化。本体はI04基盤を実装済み（業務UIは未実装）です。
+[OPERATIONS_DECISION](docs/OPERATIONS_DECISION.md)に承認内容・受入条件を整理。集計期間設定の境界と利用途中変更も承認済み。Issue #2は本変更のmain反映で仕様決定として完了。Issue #3の物理設計・計算仕様は本変更で文書化。本体はI05収支・項目管理UIを実装済みです。
 
 ## I03設計資料
 
@@ -55,4 +55,9 @@ I03は設計文書の工程。I04の基盤実装・DB試験は後述。実機試
 
 ## 基盤の起動と検証
 
-[実装状態と起動手順](docs/IMPLEMENTATION_STATUS.md)、[I04試験結果](docs/TEST_RESULTS_I04.md)を参照。npm ci → npm test、npm run serveでローカル起動できます。通常利用は外部パッケージ不要。Android/iPhone実機試験は未実施です。
+[実装状態と起動手順](docs/IMPLEMENTATION_STATUS.md)、[I04試験結果](docs/TEST_RESULTS_I04.md)を参照。npm ci → npm test、npm run serveでローカル起動できます。通常利用は外部パッケージ不要。I04基盤は両実機で確認済み、I05新UIは実機未確認です。
+
+## 収支入力・一覧・項目管理（0.2.0-dev）
+
+最初に設定で収入/支出の項目を追加し、入力画面の専用テンキーから登録します。1行一覧で絞り込み・編集・削除、設定で項目の並び替え/無効化ができます。
+[実装状態](docs/IMPLEMENTATION_STATUS.md)と[I05試験結果](docs/TEST_RESULTS_I05.md)を参照。npm run test:browser:i05は新UI、npm run test:upgradeはI04からの実更新を検証します。DB版/JSON形式版は1のまま互換維持。
