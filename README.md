@@ -31,12 +31,12 @@
 - [区分と未承認提案](docs/CLASSIFICATION.md)
 - [変更管理](CONTRIBUTING.md)
 
-OPEN_QUESTIONSの11項目に、レビュー追加のR-Q01〜R-Q05を合わせて未解決16件です。詳細はMIGRATION_REVIEW参照。過去版それぞれの全文照合は未完了ですが、版別変更内容は添付CHANGELOGから確認できました。以前の推測不足版の管理資料より、本パッケージを優先します。
+初回レビューでは未解決16件でした。2026-10-19の承認で6件を解決し保留方式1件を分離、現在は未解決11件です。詳細はMIGRATION_REVIEW参照。過去版それぞれの全文照合は未完了ですが、版別変更内容は添付CHANGELOGから確認できました。以前の推測不足版の管理資料より、本パッケージを優先します。
 正本リポジトリ: https://github.com/viaNEONIA/kakeibo 。2026-10-19にmainの15文書をレビュー版と照合し一致を確認しました。ZIPは移行時点のスナップショットであり、今後はGitHubを唯一の正本として更新します。
 
 ## 現在の作業状態
 
 - Issue #1〜#10を登録。対応表は[Issue管理](docs/ISSUE_DRAFTS.md)を参照。
-- 未確定16件は未解決のまま保持。最優先は[繰越計算・締め・過去修正](https://github.com/viaNEONIA/kakeibo/issues/1)。
+- 未確定は11件。繰越計算の承認済み内容と保留案は[決定記録](docs/CARRYOVER_DECISION.md)を参照。最優先は[繰越計算・締め・過去修正](https://github.com/viaNEONIA/kakeibo/issues/1)。
 - 初期実装は未着手。将来の目標達成予定月推定は初期リリース対象外。
 - 管理整備の変更はdocs/github-management-setupからPRで確認しmainへ統合する運用。
