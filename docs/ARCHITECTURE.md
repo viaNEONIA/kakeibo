@@ -33,4 +33,8 @@ docs/
 
 ## 承認済み運用追補 — 2026-10-19
 
-JSON復元は全量上書きのみ、型・必須値・参照・重複ID/未知新版検証後に原子的置換。不正時は元データを保持し、事前バックアップ導線を設ける。CSVは収支とプールの2種類。対象環境はAndroid Chrome・iOS Safari・PC Chrome/Edge、検証時に版を記録。集計期間定義と日本時間の日付境界を計算処理の共通入力とする。詳細はOPERATIONS_DECISION、期間変更ルールは未確定。
+JSON復元は全量上書きのみ、型・必須値・参照・重複ID/未知新版検証後に原子的置換。不正時は元データを保持し、事前バックアップ導線を設ける。CSVは収支とプールの2種類。対象環境はAndroid Chrome・iOS Safari・PC Chrome/Edge、検証時に版を記録。集計期間定義と日本時間の日付境界を計算処理の共通入力とする。詳細はOPERATIONS_DECISION、期間変更ルールはOPERATIONS_DECISIONで承認済み。
+
+## I03の保存・計算設計
+
+[DATA_MODEL](DATA_MODEL.md)は17ストアとキー/索引/参照、[CALCULATION_SPEC](CALCULATION_SPEC.md)は期間・純支出・精算の入出力、[STORAGE_PROTOCOL](STORAGE_PROTOCOL.md)は原子的更新・再試行・競合・復元・移行を定義する。未精算額は導出値、期間はUUIDで識別する。ソースコード・DB雛形は追加しない。

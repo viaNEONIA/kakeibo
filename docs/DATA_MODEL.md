@@ -1,40 +1,59 @@
-# データモデルと計算規則 v1.3
+# DATA_MODEL — IndexedDB物理設計 v1
 
-## IndexedDBストア（設計案）
-- `transactions`: id(UUID), type(income|expense), date(YYYY-MM-DD), categoryId, name, amount(正整数円), memo, recurringRuleId?, createdAt, updatedAt。
-- `categories`: id, type, name, sortOrder, active。
-- `monthlyBudgets`: month(YYYY-MM), baseBudget, carryoverEnabled? 等。
-- `categoryBudgets`: month, categoryId, amount。
-- `recurringRules`: id, type, name, amount, dayOfMonth, categoryId, activeFrom, activeUntil, enabled。
-- `recurringOccurrences`: ruleId, month, transactionId?, status。
-- `carryoverTransfers`: id, effectiveMonth, sourceMonth?, kind(add|allocate|adjust|reverse), amount, createdAt。
-- `carryoverGoalHistory`: id, targetAmount|null, effectiveMonth, createdAt。
-- `budgetRevisions`: id, month, before, after, timestamp。
-- `settings`: key, value。
+対象: 正式仕様v1.3と承認済み追補。Issue #3の設計成果物。DB実装は未作成。プロダクト仕様はSPEC、OPERATIONS_DECISION、CARRYOVER_DECISIONを優先し、本書は保存方式を定義する。
 
-上記ストアは実装設計案。最終のキー・インデックス・移行処理はWorkで整合性レビュー後に確定する。
+## 型と共通制約
 
-## 基本式
-- 月間収支 = 収入合計 − 支出合計
-- 利用可能予算 = 基本予算 + 繰越プールから当月への配分
-- 当月予算残額 = 利用可能予算 − 当月支出
-- 月末精算額 = 基本予算 + 当月配分 − 当月支出（負数も精算）
-- プール月末残高 = 前月末残高 + 月末精算額 − 当月配分 + 調整
-- 目標達成率 = プール残高 / 目標額 × 100（目標未設定・0円は非表示）
+- DB名: kakeibo-pwa、初期DB版1。アプリ版・仕様版・バックアップ形式版とは別管理。
+- IDは不変のUUID文字列。複合キーは配列。年月ラベルを主キーに使わない。
+- CivilDate=実在するYYYY-MM-DD、Month=YYYY-MM、業務日付の解釈はAsia/Tokyo。監査時刻はUTCのISO文字列、日付所属を監査時刻から推測しない。
+- moneyは整数円。通常取引amountは1〜999,999,999。予算/振分/配分は非負の安全整数、目標は正の安全整数。台帳増減は符号付き安全整数。計算の各加減算・総和で安全整数範囲を検証し、桁あふれは保存前に拒否する。
+- 可変レコードはrevision（1から増加）、createdAt、updatedAtを持つ。参照整合性・列挙値・金額・日付は保存層で検証。索引の一意性だけに依存しない。
+- 初期プール額はopeningエントリ1件で表現。初期値0円。未精算額・配分可能額は導出し独立した残高として保存しない。
 
-## 決定と残課題
+## ストア・主キー・索引
 
-繰越原資・未使用配分戻し・超過精算・手動締め・差額再確定・過去修正の後続再計算・負残高警告・配分停止・初期残高0円は2026-10-19承認。物理ストアは引き続き設計案であり、正負精算と再確定の識別を表現できるようI03で再設計する。
-[CARRYOVER_DECISION](CARRYOVER_DECISION.md)を計算と受入値の正本とする。保留額の導出表示と後月余剰による解消はQ-HOLDとして承認済み。配分可能額=max(実残高,0)、未精算額=max(-実残高,0)。未精算額を別の支出・控除として保存しない。目標の適用開始月・同月履歴保持、定期日の暦月末補正は承認済み。期間の月名・目標有効月は終了月に対応。P-Q01/P-Q02は承認済み。
+索引欄のuはunique、その他は非unique。索引なしは—。
 
-## データ整合性原則
-残高の唯一の正本を画面用キャッシュにしない。履歴から再計算可能とする。取引削除・編集時は影響する月以降を再計算。配分や調整の履歴を勝手に消さない。IndexedDBスキーマとアプリ版は別管理。
+| store | keyPath | 主なデータ | 索引 |
+| --- | --- | --- | --- |
+| meta | key | schemaInfo、datasetId、datasetRevision、ledgerSequence | — |
+| categories | id | type(income/expense)、name、sortOrder、active、revision | typeOrder=[type,sortOrder] |
+| transactions | id | type(income/expense/refund)、date、periodId、categoryId、amount、name、memo、occurrenceId?、revision | date、periodDate=[periodId,date]、categoryDate=[categoryId,date]、occurrenceId(u・任意時のみ) |
+| periodPolicies | id | startDay(1..28)、effectiveFrom、revision | effectiveFrom(u) |
+| periods | id | startDate、endDate、labelMonth、kind(normal/transition)、policyId、state(open/closed)、sequence、revision | startDate(u)、sequence(u)、labelMonth |
+| periodBudgets | periodId | baseBudget、revision | — |
+| categoryBudgets | [periodId,categoryId] | amount、revision | periodId |
+| budgetRevisions | id | periodId、before、after、reason、operationId | periodId、operationId |
+| recurringRules | id | type(income/expense)、name、amount、categoryId、dayOfMonth(1..31)、activeFrom/Until、enabled、revision | — |
+| recurringOccurrences | [ruleId,scheduleMonth] | id、scheduledDate、ruleRevision、snapshot、status(pending/confirmed/voided)、transactionId? | id(u)、scheduledDate、transactionId(u・任意時のみ) |
+| carryoverEntries | id | periodId、kind(opening/allocate/adjust/settle/reverse)、delta、operationId、sequence、reversalOf? | periodSequence=[periodId,sequence]、sequence(u)、operationId、reversalOf(u・任意時のみ) |
+| periodClosings | periodId | inputRevision、settlementTotal、closeRevision、lastOperationId | — |
+| closingRevisions | id | periodId、previousTotal、newTotal、delta、reason、operationId | periodId、operationId |
+| goalHistory | id | effectivePeriodId、targetAmount|null、sequence、createdAt | effectivePeriodSequence=[effectivePeriodId,sequence]、sequence(u) |
+| goalNotifications | goalRevisionId | firstReachedAt、periodId | — |
+| operationReceipts | id | command、payloadFingerprint、resultIds、committedAt | — |
+| settings | key | value、revision | — |
 
-## UI・運用決定のデータ設計への影響
+各ストアのレコード共通情報は上記の型ルールに従う。合計17ストア。metaは単一の初期化記録と更新カウンタを含む。バックアップには全17ストアを含める。
 
-[OPERATIONS_DECISION](OPERATIONS_DECISION.md)を参照。定期収入を含め、返金種別は元支出項目・返金日を保持し返金日の支出を減らす。通常取引金額は整数円1〜999,999,999、0円/小数を拒否。物理スキーマは設計案のまま、refund種別・通知履歴・期間定義・期間境界/識別子・スキーマ移行をI03で設計する。
-JSON全ストアと設定・履歴を検証し一括置換、未知新版やID重複等は拒否。統合復元は初期対象外。期間が変わっても取引の元日付を保持する。monthキーだけで任意期間を表現できると仮定しない。
+## 参照と識別
 
-## 集計期間の確定追補
+- periodIdは実期間の固定ID。endDateまで含む。期間列はstartDate<=endDate、重複なし・隣接期間は前終了日の翌日開始を検証。変更時は現期間の締め後に移行期間/新方針を追加し、過去期間の境界は更新しない。
+- labelMonthはendDateの年月で表示専用。移行期間と通常期間が同じlabelMonthでも衝突しない。CSVには開始/終了日を出す。
+- transactions.periodIdは日付から解決して保存する。日付編集では旧/新期間を再評価、より早い期間以降を再計算する。未作成の対象期間は同一保存処理で生成・検証し、期間欠落を放置しない。
+- categoriesは履歴から参照されている限り物理削除しない。無効化して新規候補から外す。incomeはincome項目、expense/refundはexpense項目を参照する。
+- refundは正のamountとexpense項目を持ち、返金日の純支出を減らす。元取引への必須リンクや返金総額制限は新たに導入しない。
+- recurringOccurrencesは暦月ごとにruleIdとscheduleMonthで一意。移行期間を追加しても予定を増殖させない。予定日・金額・名称・項目をsnapshotとして確定取引へコピーし、後のルール変更で確定実績を書き換えない。
+- 定期取引の削除時はoccurrenceをvoidedにし参照を外す。自動で実績を復活させない。再登録の操作詳細に新たな仕様判断が必要なら実装時にIssue化する。
+- goalHistoryは表示月に対応する期間IDと順序で有効化。同じ月名の期間があっても具体期間を明示。同一適用期間内の変更はsequenceで保持、最後の設定が有効。解除もtargetAmount=nullの履歴。過去境界は固定し、期間設定変更で履歴を書き換えない。
+- goalNotificationsは目標設定レコードIDで一意。同額への再設定も新しい設定履歴となる。同じ設定で減少/再達成しても二重通知しない。
 
-OPERATIONS_DECISIONの確定ルールを適用。開始日1〜28日・翌開始日前日終了、月ラベルは終了月、移行期間を区別する。CSVは実開始/終了日を保持。期間変更で過去の確定期間・目標・配分/精算履歴を再編しない。期間の識別子、境界、設定履歴、移行期間種別をI03で物理設計する。年月のみのキーによって同じ終了月の移行期間を上書きしない。
+## 原本と導出値
+
+収支・予算・台帳・精算版・目標履歴が原本。月別表示、純支出、使用率、実残高、未精算額、配分可能額は導出値。[CALCULATION_SPEC](CALCULATION_SPEC.md)参照。
+periodClosings.settlementTotalはその期間ですでに反映した精算額。台帳settleの合計と必ず一致させる。過去修正に伴う再評価は差額台帳とclosingRevisionsを追加し、古い台帳を削除しない。
+
+## 保存と復元
+
+一意操作ID、原子的な更新、複数タブの競合、スキーマ移行とJSON全量復元は[STORAGE_PROTOCOL](STORAGE_PROTOCOL.md)を参照。自動採番のローカル順序はmetaで確保し、トランザクション内で一意性を検証する。
