@@ -32,4 +32,11 @@
 - [変更管理](CONTRIBUTING.md)
 
 OPEN_QUESTIONSの11項目に、レビュー追加のR-Q01〜R-Q05を合わせて未解決16件です。詳細はMIGRATION_REVIEW参照。過去版それぞれの全文照合は未完了ですが、版別変更内容は添付CHANGELOGから確認できました。以前の推測不足版の管理資料より、本パッケージを優先します。
-GitHub登録先URLは未指定で、リポジトリ作成・Issue登録・pushは未実施です。本ZIPは初回登録用スナップショットです。登録後はGitHubを唯一の正本として更新してください。
+正本リポジトリ: https://github.com/viaNEONIA/kakeibo 。2026-10-19にmainの15文書をレビュー版と照合し一致を確認しました。ZIPは移行時点のスナップショットであり、今後はGitHubを唯一の正本として更新します。
+
+## 現在の作業状態
+
+- Issue #1〜#10を登録。対応表は[Issue管理](docs/ISSUE_DRAFTS.md)を参照。
+- 未確定16件は未解決のまま保持。最優先は[繰越計算・締め・過去修正](https://github.com/viaNEONIA/kakeibo/issues/1)。
+- 初期実装は未着手。将来の目標達成予定月推定は初期リリース対象外。
+- 管理整備の変更はdocs/github-management-setupからPRで確認しmainへ統合する運用。
