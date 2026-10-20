@@ -40,22 +40,237 @@
           <button id="home-input" class="primary">＋ 収支を入力</button
           ><button id="home-list">一覧を見る</button>
         </div>
+        <section id="home-budget-card">
+          <div class="section-heading">
+            <h2>予算と繰越</h2>
+            <button id="home-budget" class="text-button">予算へ</button>
+          </div>
+          <div class="home-budget-grid">
+            <div><span>基本予算</span><strong id="home-base">0円</strong></div>
+            <div>
+              <span>プール配分</span><strong id="home-allocation">0円</strong>
+            </div>
+            <div>
+              <span>利用可能予算</span><strong id="home-available">0円</strong>
+            </div>
+            <div>
+              <span>残予算</span><strong id="home-remaining">0円</strong>
+            </div>
+            <div>
+              <span>プール実残高</span><strong id="home-pool">0円</strong>
+            </div>
+            <div>
+              <span>未精算額</span><strong id="home-unsettled">0円</strong>
+            </div>
+          </div>
+          <p id="home-budget-warning" class="budget-warning"></p>
+          <ul id="home-category-warnings"></ul>
+        </section>
         <section>
           <h2>最近の記録</h2>
           <div id="recent-list"></div>
           <p class="hint">
-            予算・繰越・定期収支は今後の対応です。この版では収支と項目を管理できます。
+            収支・予算・繰越を管理できます。目標・定期収支・CSVは今後の対応です。
           </p>
         </section>
       </section>
       <section id="screen-budget" class="screen" aria-label="予算" hidden>
-        <div class="empty-state">
-          <span class="eyebrow">BUDGET</span>
-          <h2>予算管理は準備中です</h2>
-          <p>
-            現在は収支入力・一覧・項目管理を利用できます。記録したデータは、予算機能の追加後も引き継ぎます。
-          </p>
+        <div class="period-toolbar">
+          <button type="button" id="budget-prev" aria-label="前の集計期間">
+            ‹</button
+          ><label class="sr-only" for="budget-date">表示する日付</label
+          ><input id="budget-date" type="date" /><button
+            type="button"
+            id="budget-show"
+          >
+            表示</button
+          ><button type="button" id="budget-next" aria-label="次の集計期間">
+            ›
+          </button>
         </div>
+        <h2 id="budget-period-title">集計期間</h2>
+        <p id="budget-range" class="hint"></p>
+        <p id="budget-no-period">表示する日付から集計期間を準備します。</p>
+        <div id="budget-content" hidden>
+          <section>
+            <div class="section-heading">
+              <h2>期間の予算</h2>
+              <span id="budget-state" class="badge"></span>
+            </div>
+            <dl class="budget-summary">
+              <div>
+                <dt>基本予算</dt>
+                <dd id="budget-base-value"></dd>
+              </div>
+              <div>
+                <dt>プールからの配分</dt>
+                <dd id="budget-allocation-value"></dd>
+              </div>
+              <div>
+                <dt>利用可能予算</dt>
+                <dd id="budget-available"></dd>
+              </div>
+              <div>
+                <dt>支出（返金差引）</dt>
+                <dd id="budget-expense"></dd>
+              </div>
+              <div>
+                <dt>残予算</dt>
+                <dd id="budget-remaining"></dd>
+              </div>
+              <div>
+                <dt>未振分</dt>
+                <dd id="budget-unassigned"></dd>
+              </div>
+            </dl>
+            <p id="budget-warning" class="budget-warning" role="status"></p>
+            <form id="budget-form">
+              <label
+                >基本予算（円）<input
+                  id="budget-base"
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                  required
+              /></label>
+              <h3>項目別の振分</h3>
+              <div id="category-budget-rows"></div>
+              <p id="budget-draft-total" class="hint"></p>
+              <div class="actions">
+                <button id="budget-copy" type="button">
+                  前期間の予算をコピー</button
+                ><button id="budget-save" class="primary">予算を保存</button>
+              </div>
+            </form>
+          </section>
+          <section>
+            <h2>繰越プール</h2>
+            <dl>
+              <div>
+                <dt>確定済みの実残高</dt>
+                <dd id="pool-balance"></dd>
+              </div>
+              <div>
+                <dt>配分可能額</dt>
+                <dd id="pool-available"></dd>
+              </div>
+              <div>
+                <dt>未精算額</dt>
+                <dd id="pool-unsettled"></dd>
+              </div>
+            </dl>
+            <p id="pool-warning" class="budget-warning" role="status"></p>
+            <form id="allocate-form">
+              <label
+                >この期間へ配分（円）<input
+                  id="allocate-amount"
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputmode="numeric"
+                  required /></label
+              ><button id="allocate-submit" class="primary">
+                プールから配分
+              </button>
+            </form>
+            <div id="allocation-history"></div>
+            <details>
+              <summary>残高を調整</summary>
+              <form id="adjust-form">
+                <label
+                  >増減額（減額はマイナス）<input
+                    id="adjust-amount"
+                    type="number"
+                    step="1"
+                    inputmode="text"
+                    required /></label
+                ><label
+                  >メモ（任意）<input id="adjust-memo" type="text" /></label
+                ><button id="adjust-submit">調整を記録</button>
+              </form>
+            </details>
+            <details>
+              <summary>初期残高</summary>
+              <p class="hint">
+                配分・調整・締めの開始後は、初期額ではなく残高調整を使用します。
+              </p>
+              <form id="opening-form">
+                <label
+                  >初期残高（円）<input
+                    id="opening-amount"
+                    type="number"
+                    min="0"
+                    step="1"
+                    inputmode="numeric"
+                    required /></label
+                ><button id="opening-submit">初期残高を保存</button>
+              </form>
+            </details>
+          </section>
+          <section>
+            <h2>期間の締め</h2>
+            <dl>
+              <div>
+                <dt>精算見込み</dt>
+                <dd id="close-target"></dd>
+              </div>
+              <div>
+                <dt>既に反映した精算</dt>
+                <dd id="close-settled"></dd>
+              </div>
+              <div>
+                <dt>今回反映する差額</dt>
+                <dd id="close-difference"></dd>
+              </div>
+              <div>
+                <dt>この差額反映後の見込み残高</dt>
+                <dd id="close-projected"></dd>
+              </div>
+            </dl>
+            <p class="hint">
+              見込みは確定するまでプール残高に含めません。締め後の収支修正は差額だけを再計算します。
+            </p>
+            <button id="close-period" class="primary">この期間を締める</button>
+            <details>
+              <summary>精算履歴</summary>
+              <div id="closing-history"></div>
+            </details>
+          </section>
+        </div>
+        <section>
+          <details id="history-details">
+            <summary>プールの期間別推移</summary>
+            <label
+              >表示範囲<select id="history-range">
+                <option value="3">3期間</option>
+                <option value="6">6期間</option>
+                <option value="12">12期間</option>
+                <option value="all">全期間</option>
+              </select></label
+            >
+            <div class="history-scroll" tabindex="0" aria-label="プール推移表">
+              <table>
+                <thead>
+                  <tr>
+                    <th>期間</th>
+                    <th>月初</th>
+                    <th>追加</th>
+                    <th>配分</th>
+                    <th>超過精算</th>
+                    <th>調整</th>
+                    <th>残高</th>
+                    <th>未精算</th>
+                  </tr>
+                </thead>
+                <tbody id="pool-history"></tbody>
+              </table>
+            </div>
+            <p class="hint">
+              確定精算額を集計しています。再確定の履歴を重ねて加算しません。未締めの期間は見込みを含みません。
+            </p>
+          </details>
+        </section>
       </section>
       <section id="screen-input" class="screen" aria-label="入力" hidden>
         <form id="transaction-form" novalidate>
@@ -239,6 +454,18 @@
           </p>
         </section>
         <section>
+          <h2>集計期間の設定</h2>
+          <p class="hint">
+            保存済みの最後の期間を締めた後から変更します。過去の期間・履歴はそのまま維持します。
+          </p>
+          <form id="period-policy-form">
+            <label>適用元の期間<select id="policy-after"></select></label
+            ><label>新しい開始日<select id="policy-start-day"></select></label>
+            <p id="policy-preview" class="hint"></p>
+            <button id="policy-submit">締め後の期間設定を変更</button>
+          </form>
+        </section>
+        <section>
           <h2>データとアプリ</h2>
           <p id="db-status" role="status">準備しています…</p>
           <p id="offline-status" class="hint" role="status">
@@ -255,7 +482,7 @@
             </div>
             <div>
               <dt>バージョン</dt>
-              <dd>0.2.0-dev</dd>
+              <dd>0.3.0-dev</dd>
             </div>
             <div>
               <dt>最終バックアップ</dt>

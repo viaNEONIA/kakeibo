@@ -136,7 +136,11 @@ export function totals(transactions) {
   const expense = safeAdd(gross, -refund);
   return { income, expense, refund, net: safeAdd(income, -expense) };
 }
-function recalculateClosed(s, operationId) {
+export function recalculateClosed(
+  s,
+  operationId,
+  reason = "transaction-change",
+) {
   for (const p of [...s.periods].sort((a, b) =>
     a.startDate.localeCompare(b.startDate),
   )) {
@@ -176,7 +180,7 @@ function recalculateClosed(s, operationId) {
       newTotal: target,
       delta,
       closeRevision: next,
-      reason: "transaction-change",
+      reason,
       operationId,
       createdAt: at,
     });
