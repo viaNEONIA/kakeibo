@@ -59,6 +59,15 @@ export function validateSharing(q) {
       q.events.length <= 100000,
     "共有履歴が不正です",
   );
+  if (q.confirmedEventIds !== undefined) {
+    const eventIds = new Set(q.events.map((e) => e.id));
+    check(
+      Array.isArray(q.confirmedEventIds) &&
+        new Set(q.confirmedEventIds).size === q.confirmedEventIds.length &&
+        q.confirmedEventIds.every((id) => eventIds.has(id)),
+      "親の確認済み変更情報が不正です",
+    );
+  }
   const seen = new Map();
   // Events are stored in topological order. Parents must already exist and belong to the same record.
   for (const e of q.events) {

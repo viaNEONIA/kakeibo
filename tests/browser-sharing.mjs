@@ -123,6 +123,7 @@ async function restore(data) {
 const children = [];
 async function nav(pg, name) {
   await pg.locator(`[data-screen="${name}"]`).click();
+  await pg.locator("#screen-" + name).waitFor({ state: "visible" });
 }
 async function fileDownload(pg, action) {
   const wait = pg.waitForEvent("download");
@@ -205,6 +206,25 @@ try {
   const a = children[0].pg,
     b = children[1].pg;
   await add(a, 200);
+  await nav(a, "budget");
+  await a.reload();
+  await a.locator("#child-budget-preview").waitFor({ state: "visible" });
+  assert(await a.locator("#budget-base").evaluate((e) => e.readOnly));
+  assert.equal(
+    await a.locator("#child-preview-expense").textContent(),
+    "300円",
+  );
+  assert.match(
+    await a.locator("#child-preview-status").textContent(),
+    /確認待ち 1件/,
+  );
+  assert.match(
+    await a.locator("#child-preview-comparison").textContent(),
+    /支出 100円/,
+  );
+  check(
+    "child immediately displays provisional spending and confirmed parent comparison",
+  );
   await nav(a, "settings");
   const data = await fileDownload(a, () => a.locator("#family-export").click());
   const ordinaryBackup = await fileDownload(a, () =>
@@ -221,6 +241,23 @@ try {
   );
   await upload(a, "#family-import-file", parentFile);
   await upload(b, "#family-import-file", parentFile);
+  await nav(a, "budget");
+  assert.match(
+    await a.locator("#child-preview-status").textContent(),
+    /確認待ちはありません/,
+  );
+  assert.match(
+    await a.locator("#child-preview-title").textContent(),
+    /反映済み/,
+  );
+  assert.equal(
+    await a.locator("#child-preview-expense").textContent(),
+    "300円",
+  );
+  await nav(a, "settings");
+  check(
+    "parent result refreshes provisional values and clears acknowledged changes",
+  );
   const tx = (await snap(a)).transactions.find((t) => t.amount === 100);
   for (const [pg, amount] of [
     [a, 250],
@@ -292,6 +329,50 @@ try {
   assert(await a.locator("#budget-save").isDisabled());
   await nav(a, "settings");
   check("parent closing propagates and child finance controls remain disabled");
+  await add(a, 50);
+  await nav(a, "budget");
+  assert.equal(
+    await a.locator("#child-preview-remaining").textContent(),
+    "500円",
+  );
+  assert.equal(await a.locator("#pool-balance").textContent(), "550円");
+  assert.match(
+    await a.locator("#child-preview-status").textContent(),
+    /確認待ち 1件/,
+  );
+  await nav(a, "settings");
+  const late = await fileDownload(a, () => a.locator("#family-export").click());
+  await upload(page, "#family-import-file", late);
+  const latest = await fileDownload(page, () =>
+    page.locator("#family-export").click(),
+  );
+  await upload(a, "#family-import-file", latest);
+  await nav(a, "budget");
+  assert.equal(await a.locator("#pool-balance").textContent(), "500円");
+  assert.equal(
+    await a.locator("#child-preview-remaining").textContent(),
+    "500円",
+  );
+  assert.match(
+    await a.locator("#child-preview-status").textContent(),
+    /確認待ちはありません/,
+  );
+  for (const width of [412, 320]) {
+    await a.setViewportSize({ width, height: 915 });
+    assert(
+      await a.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
+  }
+  await a.screenshot({
+    path: "/tmp/kakeibo-child-budget-preview.png",
+    fullPage: true,
+  });
+  await nav(a, "settings");
+  check(
+    "closed child budget is provisional without settlement until parent results arrive",
+  );
   await a.evaluate(() => navigator.serviceWorker.ready);
   await a.waitForFunction(() => !!navigator.serviceWorker.controller);
   await children[0].ctx.setOffline(true);

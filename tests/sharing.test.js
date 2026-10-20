@@ -1,3 +1,4 @@
+import { childBudgetPreview } from "../js/child-preview.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { IDBFactory } from "fake-indexeddb";
@@ -303,4 +304,114 @@ test("ordinary shared JSON backup can be merged without performing full replacem
     await f.import(await f.preview(file));
     assert.equal((await c.p.snapshot()).transactions.length, 2);
     assert.equal(sharing(await c.p.snapshot()).deviceId, q.deviceId);
+  }));
+
+test("child provisional budget stays pending until parent acknowledgement and preserves later edits", () =>
+  fixture(async (c) => {
+    const pid = (await c.a.snapshot()).periods[0].id,
+      initial = await c.a.snapshot();
+    assert.equal(childBudgetPreview(initial, pid).pendingCount, 0);
+    await new Ledger(c.a).add({ ...c.row, amount: 200 }, await rev(c.a));
+    let s = await c.a.snapshot(),
+      v = childBudgetPreview(s, pid);
+    assert.equal(v.local.expense, 300);
+    assert.equal(v.confirmed.expense, 100);
+    assert.equal(v.pendingCount, 1);
+    assert.equal(poolBalance(s), poolBalance(initial));
+    await merge(c.p, c.a);
+    assert.equal(childBudgetPreview(await c.a.snapshot(), pid).pendingCount, 1);
+    const ack = await c.f.export();
+    await edit(c.a, c.id, 180);
+    await merge(c.a, ack);
+    s = await c.a.snapshot();
+    v = childBudgetPreview(s, pid);
+    assert.equal(v.local.expense, 380);
+    assert.equal(v.confirmed.expense, 300);
+    assert.equal(v.pendingCount, 1);
+    await merge(c.p, c.a);
+    await merge(c.a, c.p);
+    v = childBudgetPreview(await c.a.snapshot(), pid);
+    assert.equal(v.pendingCount, 0);
+    assert.equal(v.provisional, false);
+    assert.equal(v.local.expense, 380);
+    assert.equal(v.confirmed.expense, 380);
+  }));
+test("child preview handles refunds, income, deletion and moves; parent priority updates preview", () =>
+  fixture(async (c) => {
+    const incomeCat = (
+      await new Ledger(c.p).saveCategory(
+        { type: "income", name: "給与" },
+        undefined,
+        await rev(c.p),
+      )
+    ).resultIds[0];
+    await merge(c.a, c.p);
+    let s = await c.a.snapshot(),
+      pid = s.periods[0].id;
+    await new Ledger(c.a).add(
+      { ...c.row, type: "income", categoryId: incomeCat, amount: 500 },
+      await rev(c.a),
+    );
+    await new Ledger(c.a).add(
+      { ...c.row, type: "refund", amount: 30 },
+      await rev(c.a),
+    );
+    await remove(c.a, c.id);
+    let v = childBudgetPreview(await c.a.snapshot(), pid);
+    assert.equal(v.local.income, 500);
+    assert.equal(v.local.expense, -30);
+    assert.equal(v.local.refund, 30);
+    assert.equal(v.pendingCount, 3);
+    await edit(c.p, c.id, 150);
+    await merge(c.p, c.a);
+    await merge(c.a, c.p);
+    v = childBudgetPreview(await c.a.snapshot(), pid);
+    assert.equal(v.pendingCount, 0);
+    assert.equal(v.local.expense, 120);
+    assert.equal(v.confirmed.expense, 120);
+    const t = (await c.a.snapshot()).transactions.find((t) => t.id === c.id);
+    await new Ledger(c.a).edit(
+      t.id,
+      { ...t, date: "2026-11-20" },
+      t.revision,
+      await rev(c.a),
+    );
+    s = await c.a.snapshot();
+    assert.equal(childBudgetPreview(s, pid).pendingCount, 1);
+    const next = s.periods.find((p) => p.startDate === "2026-11-01");
+    assert.equal(childBudgetPreview(s, next.id).pendingCount, 1);
+    assert.equal(childBudgetPreview(s, next.id).local.expense, 150);
+  }));
+test("child-to-child forwarding carries only parent acknowledgement; legacy child snapshots remain unknown", () =>
+  fixture(async (c) => {
+    const pid = (await c.a.snapshot()).periods[0].id;
+    await edit(c.a, c.id, 250);
+    await merge(c.b, c.a);
+    assert.equal(childBudgetPreview(await c.b.snapshot(), pid).pendingCount, 1);
+    await merge(c.p, c.a);
+    await merge(c.a, c.p);
+    await merge(c.b, c.a);
+    assert.equal(childBudgetPreview(await c.b.snapshot(), pid).pendingCount, 0);
+    const data = await new FamilySharing(c.a).export();
+    delete data.parentEventIds;
+    await edit(c.p, c.id, 300);
+    await merge(c.a, c.p);
+    const newer = await new FamilySharing(c.a).export();
+    delete newer.parentEventIds;
+    await merge(c.b, newer);
+    assert.equal(childBudgetPreview(await c.b.snapshot(), pid).unknown, true);
+    const fromParent = await c.f.export();
+    delete fromParent.parentEventIds;
+    await merge(c.b, fromParent);
+    assert.equal(childBudgetPreview(await c.b.snapshot(), pid).unknown, false);
+    assert.equal(childBudgetPreview(await c.b.snapshot(), pid).pendingCount, 0);
+  }));
+
+test("partial acknowledgement of the same parent version does not undo known confirmations", () =>
+  fixture(async (c) => {
+    const pid = (await c.a.snapshot()).periods[0].id,
+      file = await new FamilySharing(c.b).export();
+    file.parentEventIds = [];
+    await merge(c.a, file);
+    assert.equal(childBudgetPreview(await c.a.snapshot(), pid).pendingCount, 0);
   }));

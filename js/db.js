@@ -226,6 +226,9 @@ export class Database {
           const master = structuredClone(incoming.stores);
           delete stateOf(master).sharing;
           incomingShare.master = master;
+          incomingShare.confirmedEventIds = incomingShare.events.map(
+            (e) => e.id,
+          );
         }
         if (own === incomingShare.parentId) incomingShare.master = null;
         incomingShare.deviceId = own;

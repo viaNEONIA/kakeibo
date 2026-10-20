@@ -92,6 +92,36 @@
         <p id="budget-range" class="hint"></p>
         <p id="budget-no-period">表示する日付から集計期間を準備します。</p>
         <div id="budget-content" hidden>
+          <section
+            id="child-budget-preview"
+            hidden
+            aria-labelledby="child-preview-title"
+          >
+            <h2 id="child-preview-title">この端末の仮集計</h2>
+            <p id="child-preview-status" role="status"></p>
+            <p class="hint">
+              親確認済みの予算に、この端末で保持する未確認の収支を含めた参考表示です。親の統合結果を取り込むと更新します。競合で採否が変わる場合があります。確定プール残高は変更しません。
+            </p>
+            <dl class="budget-summary">
+              <div>
+                <dt>収入（仮）</dt>
+                <dd id="child-preview-income"></dd>
+              </div>
+              <div>
+                <dt>支出・返金差引（仮）</dt>
+                <dd id="child-preview-expense"></dd>
+              </div>
+              <div>
+                <dt>返金（仮・支出から差引済み）</dt>
+                <dd id="child-preview-refund"></dd>
+              </div>
+              <div>
+                <dt>残予算（仮）</dt>
+                <dd id="child-preview-remaining"></dd>
+              </div>
+            </dl>
+            <p id="child-preview-comparison" class="hint"></p>
+          </section>
           <section>
             <div class="section-heading">
               <h2>期間の予算</h2>
@@ -527,7 +557,7 @@
             </div>
             <div>
               <dt>バージョン</dt>
-              <dd>0.4.1-dev</dd>
+              <dd>0.4.2-dev</dd>
             </div>
             <div>
               <dt>最終バックアップ</dt>

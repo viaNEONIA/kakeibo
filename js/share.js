@@ -43,6 +43,9 @@ export function exchange(s, target = null) {
     masterVersion: q.masterVersion,
     master: isChild(s) ? clone(q.master) : plain(s),
     events: clone(q.events),
+    parentEventIds: isChild(s)
+      ? clone(q.confirmedEventIds)
+      : q.events.map((e) => e.id),
     joinDeviceId: target,
   };
 }
@@ -66,6 +69,7 @@ export function validateExchange(data) {
     members: data.members,
     events: data.events,
     masterVersion: data.masterVersion,
+    confirmedEventIds: data.parentEventIds,
   });
   if (data.joinDeviceId)
     assert(
@@ -152,6 +156,20 @@ export function mergeState(current, data, operationId) {
       "同じ親版の内容が一致しません",
     );
   nq.events = unionEvents(q.events, data.events);
+  if (isChild(current) && data.masterVersion >= q.masterVersion) {
+    const confirmed =
+      data.parentEventIds ??
+      (data.senderId === data.parentId
+        ? data.events.map((e) => e.id)
+        : undefined);
+    if (confirmed !== undefined)
+      nq.confirmedEventIds =
+        data.masterVersion === q.masterVersion
+          ? [...new Set([...(q.confirmedEventIds || []), ...confirmed])]
+          : clone(confirmed);
+    else if (data.masterVersion > q.masterVersion) delete nq.confirmedEventIds;
+  }
+
   validateSharing(nq);
   const results = materialize(next, nq);
   if (!isChild(next)) recalculateClosed(next, operationId, "family-import");
@@ -259,6 +277,9 @@ export class FamilySharing {
           masterVersion: data.masterVersion,
           master: clone(data.master),
           events: clone(data.events),
+          confirmedEventIds: clone(
+            data.parentEventIds ?? data.events.map((e) => e.id),
+          ),
         };
         materialize(s, st.sharing);
         return [data.joinDeviceId];
