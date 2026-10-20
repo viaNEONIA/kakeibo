@@ -1,3 +1,9 @@
+import {
+  sharing,
+  isChild,
+  validateSharing,
+  validateSharedTransactions,
+} from "./share-state.js";
 import { STORES, STORE_NAMES, DB_VERSION, stateOf } from "./schema.js";
 export function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -97,6 +103,15 @@ export function validateStores(stores) {
       money(state.ledgerSequence),
     "データ世代情報が不正です",
   );
+  validateSharing(sharing(stores));
+  validateSharedTransactions(stores);
+  if (isChild(stores)) {
+    assert(
+      sharing(stores).master && !sharing(sharing(stores).master),
+      "親の確定データが不正です",
+    );
+    validateStores(sharing(stores).master);
+  }
   const periods = rowsMap(stores.periods),
     policies = rowsMap(stores.periodPolicies),
     categories = rowsMap(stores.categories);
@@ -417,7 +432,7 @@ export function validateStores(stores) {
     const budget =
       stores.periodBudgets.find((b) => b.periodId === p.id)?.baseBudget ?? 0;
     const settlement = safeAdd(safeAdd(budget, allocation), -expense);
-    if (p.state === "closed")
+    if (p.state === "closed" && !isChild(stores))
       assert(
         closings.get(p.id).settlementTotal === settlement,
         "現在の入力と締め精算が一致しません",
@@ -467,13 +482,30 @@ export function validateStores(stores) {
 export function validateBackup(data) {
   assert(
     data?.format === "kakeibo-pwa" &&
-      data.backupFormatVersion === 1 &&
-      data.dbSchemaVersion === DB_VERSION,
+      [1, 2].includes(data.backupFormatVersion) &&
+      [1, DB_VERSION].includes(data.dbSchemaVersion),
     "未対応または不正なバックアップ形式です",
   );
   assert(
     instant(data.createdAt) && id(data.sourceDatasetId),
     "バックアップ情報が不正です",
+  );
+  if (data.dbSchemaVersion === 1) {
+    assert(
+      data.backupFormatVersion === 1 &&
+        !sharing(data.stores) &&
+        data.stores?.meta?.find((r) => r.key === "schemaInfo")?.value
+          ?.dbSchemaVersion === 1,
+      "旧バックアップ情報が不正です",
+    );
+    data = structuredClone(data);
+    data.dbSchemaVersion = DB_VERSION;
+    data.stores.meta.find((r) => r.key === "schemaInfo").value.dbSchemaVersion =
+      DB_VERSION;
+  }
+  assert(
+    data.backupFormatVersion === (sharing(data.stores) ? 2 : 1),
+    "共有バックアップ形式版が不正です",
   );
   validateStores(data.stores);
   assert(

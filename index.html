@@ -453,6 +453,51 @@
             無効にした項目も過去の記録には残ります。矢印で表示順を変更できます。
           </p>
         </section>
+        <section aria-labelledby="family-heading">
+          <h2 id="family-heading">家族で共有</h2>
+          <p id="family-status">共有未設定</p>
+          <p class="hint">
+            同じ家計簿を親1台と子端末で共有します。JSONファイルの手動交換です。ファイルには家計データが含まれます。
+          </p>
+          <form id="family-setup-form">
+            <label
+              >この親端末の名前<input
+                id="family-parent-name"
+                required
+                maxlength="80"
+                placeholder="家計管理用スマホ" /></label
+            ><button id="family-setup">この端末を親に設定</button>
+          </form>
+          <form id="family-register-form" hidden>
+            <label
+              >追加する子端末の名前<input
+                id="family-child-name"
+                required
+                maxlength="80"
+                placeholder="家族のスマホ" /></label
+            ><button id="family-register">
+              子を登録して参加ファイルを保存
+            </button>
+          </form>
+          <div id="family-members"></div>
+          <button id="family-export" hidden>統合用JSONを保存</button>
+          <label
+            >子として初回参加<input
+              id="family-join-file"
+              type="file"
+              accept=".json,application/json"
+          /></label>
+          <label
+            >同じ家計簿の統合用JSONを取り込む<input
+              id="family-import-file"
+              type="file"
+              accept=".json,application/json"
+          /></label>
+          <p class="hint">
+            子は収支の入力・編集・削除を行います。項目・予算・プール・集計期間・月締めは親が管理します。親の確定結果を子へ配布してください。子で締め後の取引を修正した場合、プールは親による再精算待ちです。
+          </p>
+          <div id="family-result" aria-live="polite"></div>
+        </section>
         <section>
           <h2>集計期間の設定</h2>
           <p class="hint">
@@ -482,7 +527,7 @@
             </div>
             <div>
               <dt>バージョン</dt>
-              <dd>0.3.0-dev</dd>
+              <dd>0.4.0-dev</dd>
             </div>
             <div>
               <dt>最終バックアップ</dt>
@@ -599,6 +644,14 @@
           ><button type="submit" class="primary" data-write>保存</button>
         </div>
       </form>
+    </dialog>
+    <dialog id="family-dialog" aria-labelledby="family-dialog-title">
+      <h2 id="family-dialog-title">家族データの取込確認</h2>
+      <div id="family-preview"></div>
+      <div class="actions">
+        <button id="family-cancel">キャンセル</button
+        ><button id="family-confirm" class="primary">確認して反映</button>
+      </div>
     </dialog>
     <dialog id="restore-dialog" aria-labelledby="restore-title">
       <h2 id="restore-title">現在のデータを置き換えます</h2>

@@ -1,3 +1,4 @@
+import { isChild } from "./share-state.js";
 import {
   BudgetLedger,
   periodFigures,
@@ -56,8 +57,19 @@ export function createBudgetUI({ getState, run, refresh, notify }) {
       !enabled || !has || (snapshot ? poolBalance(snapshot) <= 0 : true);
     $("opening-submit").disabled = !enabled || !has || !opening;
     $("policy-submit").disabled = !enabled || !snapshot?.periods.length;
+    if (snapshot && isChild(snapshot))
+      for (const id of [
+        "budget-save",
+        "budget-copy",
+        "adjust-submit",
+        "close-period",
+        "allocate-submit",
+        "opening-submit",
+        "policy-submit",
+      ])
+        $(id).disabled = true;
     for (const b of document.querySelectorAll("[data-cancel-allocation]"))
-      b.disabled = !enabled;
+      b.disabled = !enabled || (snapshot && isChild(snapshot));
   }
   async function openDate(date) {
     if (

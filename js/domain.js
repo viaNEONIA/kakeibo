@@ -1,3 +1,4 @@
+import { isChild } from "./share-state.js";
 import { uuid, now, stateOf } from "./schema.js";
 import { assert, civilDate, safeAdd } from "./validation.js";
 export const yen = (value) =>
@@ -141,6 +142,7 @@ export function recalculateClosed(
   operationId,
   reason = "transaction-change",
 ) {
+  if (isChild(s)) return;
   for (const p of [...s.periods].sort((a, b) =>
     a.startDate.localeCompare(b.startDate),
   )) {

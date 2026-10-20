@@ -66,3 +66,7 @@ budgetRevisionsのbefore/afterは{baseBudget,categoryBudgets:[{categoryId,amount
 
 js/domain.jsで項目・並び替え・一覧表示設定と収支の登録/編集/削除を実装。settings.listView.valueは{sort:date-desc|date-asc|amount-desc|amount-asc,showDate:boolean,showCategory:boolean}。旧バックアップでlistViewがない場合は日付新順・日付/項目表示を初期表示として使用する。DB版とバックアップ版は1を維持。
 取引の日付所属は固定periodId、期間生成は欠落なしに接続、前方向追加時の内部sequenceは日付順へ再設定するが既存ID/境界は不変。締め済み期間の修正はclosingRevisionsとsettle差額を原子的に追加し、未精算額を別途保存しない。項目は無効化して参照を残す。
+
+## 家族共有保存追補 — 2026-10-20
+
+DB版2。既存17ストア/キー/索引を維持し、meta.state.sharingへ共有ID・端末登録・因果的変更イベント・親確定版を追加。子は親管理データのスナップショットを保持。通常取引の実体と変更ログの解決結果を検証し、子の締め済み期間は親再精算待ちを許容する。詳細はFAMILY_SHARING参照。

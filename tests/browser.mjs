@@ -97,13 +97,11 @@ try {
   await page.waitForFunction(() =>
     document.getElementById("message").textContent.includes("保存しました"),
   );
-  await page
-    .locator("#restore-file")
-    .setInputFiles({
-      name: "backup.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify(backup)),
-    });
+  await page.locator("#restore-file").setInputFiles({
+    name: "backup.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(backup)),
+  });
   await page.locator("#restore-dialog").waitFor({ state: "visible" });
   await page.locator("#confirm-restore").click();
   await page.waitForFunction(() =>
@@ -114,13 +112,11 @@ try {
   const malformed = structuredClone(backup);
   malformed.stores.settings.push({ ...malformed.stores.settings[0] });
   malformed.recordCounts.settings++;
-  await page
-    .locator("#restore-file")
-    .setInputFiles({
-      name: "corrupt.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify(malformed)),
-    });
+  await page.locator("#restore-file").setInputFiles({
+    name: "corrupt.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(malformed)),
+  });
   await page.waitForFunction(() =>
     document.getElementById("message").classList.contains("error"),
   );
@@ -245,7 +241,7 @@ try {
   await upgradePage.evaluate(
     () =>
       new Promise((resolve, reject) => {
-        const r = indexedDB.open("kakeibo-pwa", 2);
+        const r = indexedDB.open("kakeibo-pwa", 3);
         r.onupgradeneeded = () => {};
         r.onsuccess = () => {
           r.result.close();

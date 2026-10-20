@@ -42,3 +42,7 @@ JSON復元は全量上書きのみ、型・必須値・参照・重複ID/未知�
 ## I04実装
 
 静的シェル、js/schema.js・validation.js・db.js・app.js、sw.jsを実装。DB/バックアップ形式v1、全量復元と競合制御を備える。具体範囲と限界は[IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md)、検証は[TEST_RESULTS_I04](TEST_RESULTS_I04.md)参照。後続の業務コマンドは未実装。
+
+## 家族共有実装追補 — 2026-10-20
+
+js/share-state.jsは識別/因果履歴/競合解決と共有状態検証、share.jsは親子参加/交換/統合/精算、share-ui.jsは設定とプレビューを担当。db.jsは更新と履歴を原子的に保存。DB版2へ移行し旧接続を閉じる。アプリシェルキャッシュv4。ファイル交換のみでサーバー不要。

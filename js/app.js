@@ -1,3 +1,5 @@
+import { createShareUI } from "./share-ui.js";
+import { isChild } from "./share-state.js";
 import { createBudgetUI } from "./budget-ui.js";
 import { periodFigures, poolBalance } from "./budget.js";
 import { openDatabase } from "./db.js";
@@ -13,7 +15,7 @@ import {
 } from "./domain.js";
 const $ = (id) => document.getElementById(id);
 const screens = ["home", "budget", "input", "list", "settings"];
-let budgetUI;
+let budgetUI, shareUI;
 let db,
   ledger,
   current,
@@ -82,6 +84,25 @@ function controls() {
   $("undo").disabled = !ready;
   $("confirm-restore").disabled = !ready;
   budgetUI?.syncEnabled(ready);
+  shareUI?.render(current, ready);
+  if (current && isChild(current)) {
+    for (const id of [
+      "save",
+      "add-category",
+      "budget-save",
+      "budget-copy",
+      "adjust-submit",
+      "close-period",
+      "allocate-submit",
+      "opening-submit",
+      "policy-submit",
+    ])
+      $(id).disabled = true;
+    for (const b of document.querySelectorAll(
+      "[data-cancel-allocation],#category-list button",
+    ))
+      b.disabled = true;
+  }
 }
 function stale() {
   outdated = true;
@@ -804,6 +825,7 @@ $("confirm-restore").addEventListener("click", () =>
     $("transaction-memo").value = "";
     $("restore-dialog").close();
     budgetUI?.reset();
+    shareUI?.reset();
     await render(true);
     message("すべてのデータを復元しました。");
   }),
@@ -827,6 +849,7 @@ $("reload").addEventListener("click", async () => {
       $(id).close();
     $("reload").hidden = true;
     budgetUI?.reset();
+    shareUI?.reset();
     await render(true);
     message("最新のデータを読み込みました。");
   } catch (e) {
@@ -902,6 +925,19 @@ budgetUI = createBudgetUI({
   run: action,
   refresh: render,
   notify: message,
+});
+shareUI = createShareUI({
+  getState: () => ({ db, current }),
+  run: action,
+  refresh: async () => {
+    lastAdd = null;
+    submission = null;
+    $("undo").hidden = true;
+    budgetUI?.reset();
+    await render(true);
+  },
+  notify: message,
+  hasDraft: dirty,
 });
 try {
   db = await openDatabase({
