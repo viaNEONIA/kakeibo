@@ -8,24 +8,23 @@ const text = (tag, value) => {
   e.textContent = value;
   return e;
 };
-export function createShareUI({ getState, run, refresh, notify, hasDraft }) {
+export function createShareUI({
+  getState,
+  run,
+  refresh,
+  notify,
+  hasDraft,
+  exportFile,
+}) {
   let pending = null,
     lastReport = null;
   const service = () => new FamilySharing(getState().db),
     revision = () => stateOf(getState().current).datasetRevision;
-  function save(data) {
-    const url = URL.createObjectURL(
-        new Blob([JSON.stringify(data)], { type: "application/json" }),
-      ),
-      a = document.createElement("a");
-    a.href = url;
-    a.download =
-      "kakeibo-family-" +
-      (data.joinDeviceId ? "join-" : "") +
-      data.createdAt.replace(/[:.]/g, "-") +
-      ".json";
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  function save(getData, join = false) {
+    return exportFile(getData, {
+      prefix: "kakeibo-family-" + (join ? "join-" : ""),
+      label: join ? "子参加ファイル" : "統合用ファイル",
+    });
   }
   $("family-setup-form").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -49,17 +48,19 @@ export function createShareUI({ getState, run, refresh, notify, hasDraft }) {
         revision(),
       );
       await refresh();
-      save(await service().export(r.resultIds[0]));
+      await save(() => service().export(r.resultIds[0]), true);
       $("family-child-name").value = "";
       notify(
-        "子参加ファイルを保存しました。割り当てた1台だけに渡してください。",
+        "子参加用JSONを準備しました。保存リンクから保存し、割り当てた1台だけに渡してください。",
       );
     });
   });
   $("family-export").addEventListener("click", () =>
     run(async () => {
-      save(await service().export());
-      notify("統合用ファイルを保存しました。");
+      await save(() => service().export());
+      notify(
+        "統合用JSONを準備しました。保存通知がなければ保存リンクを直接押してください。",
+      );
     }),
   );
   function report(container, r, q) {
@@ -240,7 +241,7 @@ export function createShareUI({ getState, run, refresh, notify, hasDraft }) {
               b.type = "button";
               b.disabled = !enabled;
               b.addEventListener("click", () =>
-                run(async () => save(await service().export(m.id))),
+                run(async () => save(() => service().export(m.id), true)),
               );
               row.append(b);
             }

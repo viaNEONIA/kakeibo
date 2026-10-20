@@ -460,6 +460,24 @@
         <div id="transaction-list" class="transaction-list"></div>
       </section>
       <section id="screen-settings" class="screen" aria-label="設定" hidden>
+        <section id="file-save-panel" hidden aria-labelledby="file-save-title">
+          <h2 id="file-save-title">ファイルの保存</h2>
+          <p id="file-save-status" role="status"></p>
+          <p
+            id="file-save-name"
+            class="hint"
+            style="overflow-wrap: anywhere"
+          ></p>
+          <div class="actions">
+            <a id="file-save-link" href="#" download hidden>JSONを保存</a
+            ><button id="file-save-share" type="button" hidden>
+              ファイルを共有</button
+            ><button id="file-save-close" type="button">閉じる</button>
+          </div>
+          <p class="hint">
+            作成時点のデータです。変更後は元の保存ボタンで作り直してください。保存完了はダウンロード通知・ファイルアプリで確認してください。
+          </p>
+        </section>
         <section>
           <h2>項目管理</h2>
           <div class="segmented" id="category-types">
@@ -510,6 +528,7 @@
             </button>
           </form>
           <div id="family-members"></div>
+          <p data-export-state class="hint" hidden></p>
           <button id="family-export" hidden>統合用JSONを保存</button>
           <label
             >子として初回参加<input
@@ -557,10 +576,10 @@
             </div>
             <div>
               <dt>バージョン</dt>
-              <dd>0.4.4-dev</dd>
+              <dd>0.4.5-dev</dd>
             </div>
             <div>
-              <dt>最終バックアップ</dt>
+              <dt>直近のバックアップ準備</dt>
               <dd id="last-backup">この画面では未作成</dd>
             </div>
           </dl>
@@ -586,6 +605,7 @@
         <section>
           <h2>バックアップと復元</h2>
           <p>設定・記録・履歴をまとめて保存します。</p>
+          <p data-export-state class="hint" hidden></p>
           <button id="backup" class="primary" disabled>
             JSONバックアップを保存</button
           ><label class="file-label" for="restore-file"

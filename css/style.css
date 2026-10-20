@@ -804,3 +804,17 @@ h3 {
 #home-category-warnings:empty {
   display: none;
 }
+#file-save-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border-radius: 0.7rem;
+  background: #24483e;
+  color: white;
+  text-decoration: none;
+}
+#file-save-link[hidden] {
+  display: none;
+}
