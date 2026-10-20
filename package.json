@@ -1,6 +1,6 @@
 {
   "name": "kakeibo-pwa",
-  "version": "0.2.0-dev",
+  "version": "0.3.0-dev",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,9 @@
     "serve": "python3 -m http.server 4173",
     "test:browser": "node tests/browser.mjs",
     "test:browser:i05": "node tests/browser-i05.mjs",
-    "test:upgrade": "node tests/upgrade-i04-i05.mjs"
+    "test:upgrade": "node tests/upgrade-i04-i05.mjs",
+    "test:browser:i06": "node tests/browser-i06.mjs",
+    "test:upgrade:i06": "node tests/upgrade-i05-i06.mjs"
   },
   "devDependencies": {
     "fake-indexeddb": "^6.2.6",

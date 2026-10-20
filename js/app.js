@@ -1,3 +1,5 @@
+import { createBudgetUI } from "./budget-ui.js";
+import { periodFigures, poolBalance } from "./budget.js";
 import { openDatabase } from "./db.js";
 import { APP_VERSION, stateOf, STORE_NAMES, uuid } from "./schema.js";
 import { validateBackup } from "./validation.js";
@@ -11,6 +13,7 @@ import {
 } from "./domain.js";
 const $ = (id) => document.getElementById(id);
 const screens = ["home", "budget", "input", "list", "settings"];
+let budgetUI;
 let db,
   ledger,
   current,
@@ -31,7 +34,12 @@ let inputDirty = false,
   preferenceDirty = false,
   editDirty = false,
   categoryDirty = false;
-const dirty = () => inputDirty || preferenceDirty || editDirty || categoryDirty;
+const dirty = () =>
+  inputDirty ||
+  preferenceDirty ||
+  editDirty ||
+  categoryDirty ||
+  !!budgetUI?.dirty();
 const categoryGroup = () => (inputType === "income" ? "income" : "expense");
 const activeCategories = (type) =>
   current.categories
@@ -73,6 +81,7 @@ function controls() {
     !selected[categoryGroup()];
   $("undo").disabled = !ready;
   $("confirm-restore").disabled = !ready;
+  budgetUI?.syncEnabled(ready);
 }
 function stale() {
   outdated = true;
@@ -103,6 +112,7 @@ function navigate(screen) {
   if (!screens.includes(screen)) screen = "home";
   location.hash = screen;
   showScreen(screen);
+  if (screen === "budget") budgetUI?.activate();
 }
 function showScreen(screen) {
   if (!screens.includes(screen)) screen = "home";
@@ -112,7 +122,10 @@ function showScreen(screen) {
     else a.removeAttribute("aria-current");
   }
 }
-window.addEventListener("hashchange", () => showScreen(location.hash.slice(1)));
+window.addEventListener("hashchange", () => {
+  showScreen(location.hash.slice(1));
+  if (location.hash === "#budget") budgetUI?.activate();
+});
 showScreen(
   screens.includes(location.hash.slice(1)) ? location.hash.slice(1) : "home",
 );
@@ -120,6 +133,7 @@ $("transaction-date").value = today();
 for (const [id, target] of [
   ["home-input", "input"],
   ["home-list", "list"],
+  ["home-budget", "budget"],
   ["list-add", "input"],
 ])
   $(id).addEventListener("click", () => navigate(target));
@@ -659,9 +673,58 @@ async function render(resetView = false) {
   }
   if (current.categories.some((c) => c.id === filterCategory))
     $("filter-category").value = filterCategory;
+  const homeFigures = existing
+    ? periodFigures(current, existing.id)
+    : {
+        base: 0,
+        allocation: 0,
+        available: 0,
+        remaining: -sum.expense,
+        balance: poolBalance(current),
+        unsettled: Math.max(-poolBalance(current), 0),
+        warning: sum.expense > 0 ? "未予算支出" : "通常",
+        categoryRows: [],
+      };
+  for (const [id, value] of Object.entries({
+    "home-base": homeFigures.base,
+    "home-allocation": homeFigures.allocation,
+    "home-available": homeFigures.available,
+    "home-remaining": homeFigures.remaining,
+    "home-pool": homeFigures.balance,
+    "home-unsettled": homeFigures.unsettled,
+  }))
+    $(id).textContent = yen(value);
+  $("home-budget-warning").textContent =
+    (homeFigures.unsettled > 0
+      ? "未精算額があります。新規配分は停止中です。 "
+      : "") + (homeFigures.warning !== "通常" ? homeFigures.warning : "");
+  $("home-budget-warning").classList.toggle(
+    "danger-text",
+    homeFigures.unsettled > 0 || homeFigures.warning === "超過",
+  );
+  $("home-category-warnings").replaceChildren(
+    ...homeFigures.categoryRows
+      .filter((c) =>
+        ["注意", "使い切り", "超過", "未予算支出"].includes(c.warning),
+      )
+      .map((c) =>
+        element(
+          "li",
+          c.name +
+            "：" +
+            c.warning +
+            "（支出 " +
+            yen(c.expense) +
+            " / 予算 " +
+            yen(c.budget) +
+            "）",
+        ),
+      ),
+  );
   renderCategories();
   renderCategoryManager();
   renderList();
+  budgetUI?.render(current);
   controls();
 }
 $("warning-percent").addEventListener("input", () => {
@@ -740,6 +803,7 @@ $("confirm-restore").addEventListener("click", () =>
     $("transaction-name").value = "";
     $("transaction-memo").value = "";
     $("restore-dialog").close();
+    budgetUI?.reset();
     await render(true);
     message("すべてのデータを復元しました。");
   }),
@@ -762,6 +826,7 @@ $("reload").addEventListener("click", async () => {
     for (const id of ["restore-dialog", "edit-dialog", "category-dialog"])
       $(id).close();
     $("reload").hidden = true;
+    budgetUI?.reset();
     await render(true);
     message("最新のデータを読み込みました。");
   } catch (e) {
@@ -832,6 +897,12 @@ async function pwa() {
     );
   }
 }
+budgetUI = createBudgetUI({
+  getState: () => ({ db, current }),
+  run: action,
+  refresh: render,
+  notify: message,
+});
 try {
   db = await openDatabase({
     onBlocked: () =>
@@ -861,6 +932,7 @@ try {
   await render();
   controls();
   await pwa();
+  if (location.hash === "#budget") await budgetUI.activate();
 } catch (e) {
   $("db-status").textContent = "保存を開始できませんでした";
   message(e.message, true);
