@@ -1,4 +1,4 @@
-const VERSION = "kakeibo-shell-v5";
+const VERSION = "kakeibo-shell-v6";
 const SCOPE = new URL(self.registration.scope).pathname;
 const PREFIX = `kakeibo:${SCOPE}:`;
 const CACHE = PREFIX + VERSION;
@@ -15,6 +15,7 @@ const ASSETS = [
   "./js/domain.js",
   "./js/budget.js",
   "./js/budget-ui.js",
+  "./js/child-preview.js",
   "./js/validation.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",

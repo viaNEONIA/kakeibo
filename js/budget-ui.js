@@ -1,3 +1,4 @@
+import { childBudgetPreview } from "./child-preview.js";
 import { isChild } from "./share-state.js";
 import {
   BudgetLedger,
@@ -57,6 +58,10 @@ export function createBudgetUI({ getState, run, refresh, notify }) {
       !enabled || !has || (snapshot ? poolBalance(snapshot) <= 0 : true);
     $("opening-submit").disabled = !enabled || !has || !opening;
     $("policy-submit").disabled = !enabled || !snapshot?.periods.length;
+    for (const input of document.querySelectorAll(
+      "#budget-base,[data-category-budget]",
+    ))
+      input.readOnly = !!snapshot && isChild(snapshot);
     if (snapshot && isChild(snapshot))
       for (const id of [
         "budget-save",
@@ -324,11 +329,49 @@ export function createBudgetUI({ getState, run, refresh, notify }) {
     $("budget-content").hidden = !p;
     $("budget-no-period").hidden = !!p;
     if (p) {
-      const f = periodFigures(s, p.id);
+      const f = periodFigures(s, p.id),
+        child = childBudgetPreview(s, p.id);
+      $("child-budget-preview").hidden = !child;
+      if (child) {
+        $("child-preview-title").textContent = child.provisional
+          ? "この端末の仮集計"
+          : "親の統合結果を反映済み";
+        $("child-preview-status").textContent = child.unknown
+          ? "親の確認情報がないため仮表示中です。親の最新版を取り込んでください。"
+          : child.pendingCount
+            ? "この期間に親の確認待ち " + child.pendingCount + "件"
+            : child.totalPendingCount
+              ? "この期間は親の確認済み。他期間に確認待ち " +
+                child.totalPendingCount +
+                "件"
+              : "親の確認待ちはありません。";
+        for (const key of ["income", "expense", "refund", "remaining"]) {
+          const field = $("child-preview-" + key);
+          field.textContent = yen(child.local[key]);
+          field.previousElementSibling.textContent =
+            {
+              income: "収入",
+              expense: "支出・返金差引",
+              refund: "返金（支出から差引済み）",
+              remaining: "残予算",
+            }[key] + (child.provisional ? "（仮）" : "");
+        }
+        $("child-preview-comparison").textContent =
+          "親確認済み：収入 " +
+          yen(child.confirmed.income) +
+          " ／ 支出 " +
+          yen(child.confirmed.expense) +
+          " ／ 残予算 " +
+          yen(child.confirmed.remaining) +
+          "。残予算の差 " +
+          yen(child.delta.remaining);
+      }
+
       $("budget-period-title").textContent = title(p);
       $("budget-range").textContent = p.startDate + "〜" + p.endDate;
       $("budget-state").textContent =
-        p.state === "closed" ? "締め済み" : "未締め";
+        (p.state === "closed" ? "締め済み" : "未締め") +
+        (child?.provisional ? "・仮集計あり" : "");
       for (const [id, value] of Object.entries({
         "budget-base-value": f.base,
         "budget-allocation-value": f.allocation,
@@ -379,7 +422,16 @@ export function createBudgetUI({ getState, run, refresh, notify }) {
             input.setAttribute("aria-label", row.name + "の予算");
             const note = node(
               "small",
-              "支出 " + yen(row.expense) + " ／ " + row.warning,
+              child
+                ? "親確認済み支出 " +
+                    yen(child.categoryConfirmed[row.id]) +
+                    " ／ 支出" +
+                    (child.provisional ? "（仮）" : "") +
+                    " " +
+                    yen(row.expense) +
+                    " ／ " +
+                    row.warning
+                : "支出 " + yen(row.expense) + " ／ " + row.warning,
             );
             label.append(text, input, note);
             return label;
