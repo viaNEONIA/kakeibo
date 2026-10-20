@@ -1,3 +1,4 @@
+import { canRecoverParent } from "./restore-policy.js";
 import {
   sharing,
   isChild,
@@ -194,7 +195,7 @@ export class Database {
       ),
     };
   }
-  async restore(data, expectedRevision) {
+  async restore(data, expectedRevision, { recoverParent = false } = {}) {
     const incoming = structuredClone(validateBackup(data));
     const tx = this.db.transaction(STORE_NAMES, "readwrite"),
       done = completion(tx);
@@ -209,7 +210,31 @@ export class Database {
         state.datasetRevision === expectedRevision,
         "確認後にデータが変わりました。復元内容を再確認してください",
       );
-      if (sharing(current) || sharing(incoming.stores)) {
+      if (recoverParent === true) {
+        assert(
+          canRecoverParent(current, incoming.stores),
+          "親の復旧は、親バックアップと、家計データや子登録のない初期状態の端末に限定します。既存データは変更していません",
+        );
+        const q = sharing(incoming.stores),
+          at = now();
+        stateOf(incoming.stores).parentRecovery = {
+          at,
+          sourceDatasetId: incoming.sourceDatasetId,
+          bookId: q.bookId,
+          parentId: q.parentId,
+        };
+        incoming.stores.operationReceipts.push({
+          id: uuid(),
+          command: "recover-parent",
+          payloadFingerprint: JSON.stringify({
+            bookId: q.bookId,
+            parentId: q.parentId,
+            sourceDatasetId: incoming.sourceDatasetId,
+          }),
+          resultIds: [q.parentId],
+          committedAt: at,
+        });
+      } else if (sharing(current) || sharing(incoming.stores)) {
         assert(
           sharing(current) &&
             sharing(incoming.stores) &&

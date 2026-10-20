@@ -1,3 +1,4 @@
+import { canRecoverParent } from "./restore-policy.js";
 import { createShareUI } from "./share-ui.js";
 import { isChild } from "./share-state.js";
 import { createBudgetUI } from "./budget-ui.js";
@@ -82,7 +83,9 @@ function controls() {
     amount < 1 ||
     !selected[categoryGroup()];
   $("undo").disabled = !ready;
-  $("confirm-restore").disabled = !ready;
+  $("confirm-restore").disabled =
+    !ready ||
+    (!!pending?.parentRecovery && !$("parent-recovery-confirm").checked);
   budgetUI?.syncEnabled(ready);
   shareUI?.render(current, ready);
   if (current && isChild(current)) {
@@ -795,7 +798,16 @@ $("restore-file").addEventListener("change", () =>
     const snap = await db.snapshot();
     if (stateOf(snap).datasetId !== db.generation)
       throw Error("別の画面で復元されています。最新データを読み込んでください");
-    pending = { data, revision: stateOf(snap).datasetRevision };
+    const parentRecovery = canRecoverParent(snap, data.stores);
+    pending = { data, revision: stateOf(snap).datasetRevision, parentRecovery };
+    $("parent-recovery-option").hidden = !parentRecovery;
+    $("parent-recovery-confirm").checked = false;
+    $("restore-title").textContent = parentRecovery
+      ? "バックアップから親を復旧します"
+      : "現在のデータを置き換えます";
+    $("confirm-restore").textContent = parentRecovery
+      ? "親として全量復旧"
+      : "全量上書きで復元";
     $("restore-summary").textContent =
       new Date(data.createdAt).toLocaleString("ja-JP") +
       " 作成・" +
@@ -804,6 +816,7 @@ $("restore-file").addEventListener("change", () =>
     $("restore-dialog").showModal();
   }),
 );
+$("parent-recovery-confirm").addEventListener("change", controls);
 $("cancel-restore").addEventListener("click", () => {
   pending = null;
   $("restore-dialog").close();
@@ -814,7 +827,12 @@ $("restore-dialog").addEventListener("cancel", () => {
 $("confirm-restore").addEventListener("click", () =>
   action(async () => {
     if (!pending) return;
-    await db.restore(pending.data, pending.revision);
+    const recoveredParent = pending.parentRecovery;
+    if (recoveredParent && !$("parent-recovery-confirm").checked)
+      throw Error("親としての復旧確認が必要です");
+    await db.restore(pending.data, pending.revision, {
+      recoverParent: recoveredParent,
+    });
     pending = null;
     inputDirty = preferenceDirty = false;
     lastAdd = null;
@@ -827,7 +845,11 @@ $("confirm-restore").addEventListener("click", () =>
     budgetUI?.reset();
     shareUI?.reset();
     await render(true);
-    message("すべてのデータを復元しました。");
+    message(
+      recoveredParent
+        ? "親としてデータと端末識別情報を復旧しました。旧親は同時に使用しないでください。"
+        : "すべてのデータを復元しました。",
+    );
   }),
 );
 $("reload").addEventListener("click", async () => {

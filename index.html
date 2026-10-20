@@ -557,7 +557,7 @@
             </div>
             <div>
               <dt>バージョン</dt>
-              <dd>0.4.3-dev</dd>
+              <dd>0.4.4-dev</dd>
             </div>
             <div>
               <dt>最終バックアップ</dt>
@@ -689,6 +689,18 @@
       <p>
         現在のバックアップを保存してから実行してください。この操作は取り消せません。
       </p>
+      <div id="parent-recovery-option" hidden>
+        <p>
+          <strong>親端末の識別情報もバックアップから復旧します。</strong
+          >旧親を同時に使用しないでください。バックアップ作成後の変更は含まれません。
+        </p>
+        <label class="check"
+          ><input
+            type="checkbox"
+            id="parent-recovery-confirm"
+          />このバックアップの親として復旧し、旧親は同時に使用しません。</label
+        >
+      </div>
       <div class="actions">
         <button id="cancel-restore">キャンセル</button
         ><button id="confirm-restore" class="danger">全量上書きで復元</button>
