@@ -1,6 +1,6 @@
 export const DB_NAME = "kakeibo-pwa";
 export const DB_VERSION = 2;
-export const APP_VERSION = "0.4.0-dev";
+export const APP_VERSION = "0.4.1-dev";
 export const STORES = {
   meta: { key: "key" },
   categories: { key: "id", indexes: { typeOrder: ["type", "sortOrder"] } },

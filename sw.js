@@ -1,4 +1,4 @@
-const VERSION = "kakeibo-shell-v4";
+const VERSION = "kakeibo-shell-v5";
 const SCOPE = new URL(self.registration.scope).pathname;
 const PREFIX = `kakeibo:${SCOPE}:`;
 const CACHE = PREFIX + VERSION;
