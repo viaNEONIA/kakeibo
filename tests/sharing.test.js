@@ -1,7 +1,7 @@
 import { childBudgetPreview } from "../js/child-preview.js";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { IDBFactory } from "fake-indexeddb";
+import { IDBFactory, IDBObjectStore } from "fake-indexeddb";
 import { openDatabase } from "../js/db.js";
 import { Ledger } from "../js/domain.js";
 import { BudgetLedger, poolBalance } from "../js/budget.js";
@@ -414,4 +414,170 @@ test("partial acknowledgement of the same parent version does not undo known con
     file.parentEventIds = [];
     await merge(c.a, file);
     assert.equal(childBudgetPreview(await c.a.snapshot(), pid).pendingCount, 0);
+  }));
+
+test("explicit parent recovery restores original identity and financial records, then accepts existing children once", () =>
+  fixture(async (c) => {
+    const budget = new BudgetLedger(c.p),
+      pid = (await c.p.snapshot()).periods[0].id;
+    await budget.save(pid, 1000, [], await rev(c.p));
+    await budget.close(pid, await rev(c.p));
+    const data = await c.p.backup(),
+      original = structuredClone(data),
+      fresh = await device();
+    try {
+      await new BudgetLedger(fresh).select("2026-10-20", await rev(fresh));
+      await fresh.restore(data, await rev(fresh), { recoverParent: true });
+      const restored = await fresh.snapshot(),
+        q = sharing(restored),
+        source = sharing(data.stores);
+      assert.equal(q.bookId, source.bookId);
+      assert.equal(q.parentId, source.parentId);
+      assert.equal(q.deviceId, source.deviceId);
+      assert.deepEqual(q, source);
+      for (const name of Object.keys(data.stores).filter(
+        (n) => !["meta", "operationReceipts"].includes(n),
+      ))
+        assert.deepEqual(restored[name], data.stores[name]);
+      assert.equal(
+        restored.operationReceipts.length,
+        data.stores.operationReceipts.length + 1,
+      );
+      assert.equal(stateOf(restored).parentRecovery.parentId, q.parentId);
+      assert.notEqual(stateOf(restored).datasetId, data.sourceDatasetId);
+      assert.deepEqual(data, original);
+      await new Ledger(c.a).add({ ...c.row, amount: 50 }, await rev(c.a));
+      await merge(fresh, c.a);
+      assert.equal(poolBalance(await fresh.snapshot()), 850);
+      const count = (await fresh.snapshot()).carryoverEntries.length;
+      await merge(fresh, c.a);
+      assert.equal((await fresh.snapshot()).carryoverEntries.length, count);
+      await merge(c.a, fresh);
+      assert.equal(poolBalance(await c.a.snapshot()), 850);
+    } finally {
+      fresh.close();
+    }
+  }));
+test("fresh recovery requires explicit opt-in and a parent-origin backup", () =>
+  fixture(async (c) => {
+    const d = await device(),
+      data = await c.p.backup();
+    try {
+      const before = await d.snapshot();
+      await assert.rejects(d.restore(data, await rev(d)), /共有中/);
+      await assert.rejects(
+        d.restore(await c.a.backup(), await rev(d), { recoverParent: true }),
+        /親の復旧/,
+      );
+      assert.deepEqual(await d.snapshot(), before);
+    } finally {
+      d.close();
+    }
+  }));
+test("parent recovery rejects existing sharing or business data, without changing records", () =>
+  fixture(async (c) => {
+    const data = await c.p.backup();
+    for (const scenario of ["category", "opening", "shared"]) {
+      const d = await device();
+      try {
+        if (scenario === "category")
+          await new Ledger(d).saveCategory(
+            { type: "expense", name: "既存" },
+            undefined,
+            await rev(d),
+          );
+        if (scenario === "opening")
+          await new BudgetLedger(d).setOpening(1, await rev(d));
+        if (scenario === "shared") {
+          await new FamilySharing(d).setup("既存の親", await rev(d));
+          await new FamilySharing(d).register("登録済み", await rev(d));
+        }
+        const before = await d.snapshot();
+        await assert.rejects(
+          d.restore(data, await rev(d), { recoverParent: true }),
+          /親の復旧/,
+        );
+        assert.deepEqual(await d.snapshot(), before);
+      } finally {
+        d.close();
+      }
+    }
+    await assert.rejects(
+      c.a.restore(data, await rev(c.a), { recoverParent: true }),
+      /親の復旧/,
+    );
+  }));
+test("parent recovery validates current revision, rolls back injected write failure and invalidates old generation", () =>
+  fixture(async (c) => {
+    const data = await c.p.backup(),
+      d = await device(),
+      stale = await openDatabase();
+    try {
+      const before = await d.snapshot(),
+        generation = d.generation,
+        put = IDBObjectStore.prototype.put;
+      let n = 0;
+      IDBObjectStore.prototype.put = function (...args) {
+        if (++n === 4) throw Error("recovery write failure");
+        return put.apply(this, args);
+      };
+      try {
+        await assert.rejects(
+          d.restore(data, await rev(d), { recoverParent: true }),
+          /recovery write/,
+        );
+      } finally {
+        IDBObjectStore.prototype.put = put;
+      }
+      assert.deepEqual(await d.snapshot(), before);
+      assert.equal(d.generation, generation);
+      const old = await rev(d);
+      await d.savePreferences({ warningPercent: 75 }, old);
+      await assert.rejects(
+        d.restore(data, old, { recoverParent: true }),
+        /確認後/,
+      );
+      await d.restore(data, await rev(d), { recoverParent: true });
+      await assert.rejects(
+        stale.savePreferences({ warningPercent: 60 }, await rev(d)),
+        /復元/,
+      );
+    } finally {
+      stale.close();
+      d.close();
+    }
+  }));
+
+test("an unused parent setup without business data or children can be replaced only by explicit recovery", () =>
+  fixture(async (c) => {
+    const d = await device(),
+      data = await c.p.backup();
+    try {
+      await new FamilySharing(d).setup("誤って作成した未使用親", await rev(d));
+      await assert.rejects(d.restore(data, await rev(d)), /共有中/);
+      await d.restore(data, await rev(d), { recoverParent: true });
+      assert.equal(
+        sharing(await d.snapshot()).deviceId,
+        sharing(data.stores).parentId,
+      );
+    } finally {
+      d.close();
+    }
+  }));
+test("recovering an old parent backup does not silently accept a newer parent snapshot from a child", () =>
+  fixture(async (c) => {
+    const data = await c.p.backup();
+    await c.p.savePreferences({ warningPercent: 79 }, await rev(c.p));
+    await merge(c.a, c.p);
+    const recovered = await device();
+    try {
+      await recovered.restore(data, await rev(recovered), {
+        recoverParent: true,
+      });
+      const before = await recovered.snapshot();
+      await assert.rejects(merge(recovered, c.a), /親より新しい/);
+      assert.deepEqual(await recovered.snapshot(), before);
+    } finally {
+      recovered.close();
+    }
   }));

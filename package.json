@@ -1,6 +1,6 @@
 {
   "name": "kakeibo-pwa",
-  "version": "0.4.3-dev",
+  "version": "0.4.4-dev",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,7 +14,8 @@
     "test:browser:sharing": "node tests/browser-sharing.mjs",
     "test:upgrade:sharing": "node tests/upgrade-sharing.mjs",
     "test:browser:install": "node tests/browser-install.mjs",
-    "test:browser:manifest-refresh": "node tests/browser-manifest-refresh.mjs"
+    "test:browser:manifest-refresh": "node tests/browser-manifest-refresh.mjs",
+    "test:browser:parent-recovery": "node tests/browser-parent-recovery.mjs"
   },
   "devDependencies": {
     "fake-indexeddb": "^6.2.6",
