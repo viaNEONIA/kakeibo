@@ -1,3 +1,4 @@
+import { createFileSaver } from "./file-save.js";
 import { canRecoverParent } from "./restore-policy.js";
 import { createShareUI } from "./share-ui.js";
 import { isChild } from "./share-state.js";
@@ -15,6 +16,7 @@ import {
   yen,
 } from "./domain.js";
 const $ = (id) => document.getElementById(id);
+const fileSaver = createFileSaver();
 const screens = ["home", "budget", "input", "list", "settings"];
 let budgetUI, shareUI;
 let db,
@@ -66,6 +68,16 @@ function canWrite() {
 }
 function controls() {
   const ready = canWrite();
+  for (const note of document.querySelectorAll("[data-export-state]")) {
+    note.hidden = ready;
+    note.textContent = busy
+      ? "処理中です。完了後に操作できます。"
+      : outdated
+        ? "別の画面で変更されています。「最新データを読み込む」で更新してから保存してください。"
+        : closed
+          ? "接続が閉じられています。ページを再読み込みしてください。"
+          : "保存を利用できません。画面のエラーを確認してください。";
+  }
   for (const id of [
     "save",
     "backup",
@@ -766,26 +778,19 @@ $("preferences").addEventListener("submit", (event) => {
     message("設定を保存しました。");
   });
 });
-function download(data) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    }),
-    url = URL.createObjectURL(blob),
-    a = document.createElement("a");
-  a.href = url;
-  a.download =
-    "kakeibo-backup-" + data.createdAt.replace(/[:.]/g, "-") + ".json";
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  $("last-backup").textContent = new Date().toLocaleString("ja-JP", {
-    timeZone: "Asia/Tokyo",
-  });
-}
 $("backup").addEventListener("click", () =>
   action(async () => {
-    download(await db.backup());
+    await fileSaver.export(() => db.backup(), {
+      prefix: "kakeibo-backup-",
+      label: "通常バックアップ",
+      onPrepared: () => {
+        $("last-backup").textContent =
+          new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }) +
+          "（保存完了は未確認）";
+      },
+    });
     message(
-      "バックアップの保存を開始しました。端末の保存先を確認してください。",
+      "JSONを準備しました。保存通知が出ない場合は、画面の「JSONを保存」を直接押してください。",
     );
   }),
 );
@@ -949,6 +954,7 @@ budgetUI = createBudgetUI({
   notify: message,
 });
 shareUI = createShareUI({
+  exportFile: (getData, options) => fileSaver.export(getData, options),
   getState: () => ({ db, current }),
   run: action,
   refresh: async () => {
