@@ -1,4 +1,4 @@
-const VERSION = "kakeibo-shell-v6";
+const VERSION = "kakeibo-shell-v7";
 const SCOPE = new URL(self.registration.scope).pathname;
 const PREFIX = `kakeibo:${SCOPE}:`;
 const CACHE = PREFIX + VERSION;
@@ -50,6 +50,33 @@ self.addEventListener("activate", (event) => {
     })(),
   );
 });
+// Keep install metadata fresh without replacing the versioned application shell.
+async function manifestResponse(request, cache, key) {
+  const controller = new AbortController(),
+    timer = setTimeout(() => controller.abort(), 3000);
+  try {
+    const response = await fetch(request, {
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error("Manifest HTTP " + response.status);
+    const data = await response.clone().json();
+    if (!data || typeof data !== "object" || Array.isArray(data))
+      throw new Error("Invalid manifest JSON");
+    try {
+      await cache.put(key, response.clone());
+    } catch {
+      /* A cache failure must not hide a fresh response. */
+    }
+    return response;
+  } catch (error) {
+    const cached = await cache.match(key);
+    if (cached) return cached;
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (
@@ -65,6 +92,8 @@ self.addEventListener("fetch", (event) => {
     (async () => {
       const cache = await caches.open(CACHE);
       const key = new Request(new URL(path || "./", self.registration.scope));
+      if (path === "manifest.webmanifest")
+        return manifestResponse(event.request, cache, key);
       const hit = await cache.match(key);
       return hit || fetch(event.request);
     })(),
