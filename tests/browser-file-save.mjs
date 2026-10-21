@@ -116,15 +116,59 @@ try {
     backup,
   );
   check("prepared File reaches share API within direct user gesture");
-  for (const mode of ["AbortError", "NotAllowedError"]) {
+  for (const mode of [
+    "AbortError",
+    "NotAllowedError",
+    "TypeError",
+    "InvalidStateError",
+    "DataError",
+  ]) {
     await page.evaluate((m) => (window.shareMode = m), mode);
     await page.locator("#file-save-share").click();
     await page.waitForFunction(
       () => !document.getElementById("file-save-share").disabled,
     );
+    const status = await page.locator("#file-save-status").textContent();
+    assert.match(
+      status,
+      mode === "AbortError" ? /キャンセル/ : new RegExp(mode),
+    );
+    assert(await page.locator("#file-share-help").isVisible());
     assert.deepEqual(await manualDownload(), backup);
   }
-  check("share cancellation and failure preserve manual download");
+  check(
+    "share cancellation and classified failures preserve manual download and external sharing guidance",
+  );
+  await page.evaluate(() =>
+    Object.defineProperty(navigator, "canShare", {
+      configurable: true,
+      value: () => false,
+    }),
+  );
+  await page.locator("#backup").click();
+  await page.locator("#file-save-link").waitFor({ state: "visible" });
+  assert(await page.locator("#file-save-share").isHidden());
+  assert.match(
+    await page.locator("#file-share-support").textContent(),
+    /利用できません/,
+  );
+  assert(await page.locator("#file-share-help").isVisible());
+  assert.equal((await manualDownload()).format, "kakeibo-pwa");
+  await page.evaluate(() =>
+    Object.defineProperty(navigator, "canShare", {
+      configurable: true,
+      value: () => {
+        throw new Error("unsupported fixture");
+      },
+    }),
+  );
+  await page.locator("#backup").click();
+  await page.locator("#file-save-link").waitFor({ state: "visible" });
+  assert(await page.locator("#file-save-share").isHidden());
+  assert.equal((await manualDownload()).format, "kakeibo-pwa");
+  check(
+    "unsupported or throwing capability check leaves JSON save and external sharing instructions usable",
+  );
   page.on("dialog", (d) => d.accept());
   await page.locator("#family-parent-name").fill("fixture parent");
   await page.locator("#family-setup").click();
