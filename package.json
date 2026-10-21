@@ -1,6 +1,6 @@
 {
   "name": "kakeibo-pwa",
-  "version": "0.6.0-dev",
+  "version": "0.6.1-dev",
   "private": true,
   "type": "module",
   "scripts": {
@@ -18,7 +18,8 @@
     "test:browser:parent-recovery": "node tests/browser-parent-recovery.mjs",
     "test:browser:file-save": "node tests/browser-file-save.mjs",
     "test:browser:goals": "node tests/browser-goals.mjs",
-    "test:browser:recurring": "node tests/browser-recurring.mjs"
+    "test:browser:recurring": "node tests/browser-recurring.mjs",
+    "test:browser:recurring-preview": "node tests/browser-recurring-preview.mjs"
   },
   "devDependencies": {
     "fake-indexeddb": "^6.2.6",

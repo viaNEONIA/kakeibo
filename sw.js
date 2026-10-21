@@ -1,4 +1,4 @@
-const VERSION = "kakeibo-shell-v13";
+const VERSION = "kakeibo-shell-v14";
 const SCOPE = new URL(self.registration.scope).pathname;
 const PREFIX = `kakeibo:${SCOPE}:`;
 const CACHE = PREFIX + VERSION;
@@ -19,6 +19,7 @@ const ASSETS = [
   "./js/budget.js",
   "./js/goals.js",
   "./js/recurring.js",
+  "./js/recurring-preview.js",
   "./js/recurring-ui.js",
   "./js/csv.js",
   "./js/goal-ui.js",

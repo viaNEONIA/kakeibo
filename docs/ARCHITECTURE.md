@@ -1,4 +1,4 @@
-# 技術構成 — 0.6.0-dev
+# 技術構成 — 0.6.1-dev
 
 静的HTML/CSS/JavaScriptのPWA。GitHub Pagesの `/kakeibo/` 配下で公開し、ブラウザー内のIndexedDBに保存します。ビルド、本番パッケージ、外部CDN、アプリサーバーは不要です。ソースと管理文書の正本はGitHubです。
 
@@ -19,6 +19,7 @@
 | `js/restore-policy.js` | 初期状態への親バックアップ復旧の条件 |
 | `js/goals.js` / `js/goal-ui.js` | 期間別目標、率/不足額、初回達成と画面 |
 | `js/recurring.js` / `js/recurring-ui.js` | 毎月のルール・予定候補・単回手動確定、設定/ホーム表示 |
+| `js/recurring-preview.js` | 未確定予定の実期間別・項目別の参照集計。DB書込なし |
 | `js/csv.js` | 収支/確定プールの別CSV、引用/改行/BOM/数式対策 |
 | `js/file-save.js` / `js/file-identity.js` | JSON/CSV保存リンク・共有案内、JSON用途/作成元の識別 |
 | `tests/` / `docs/` | 自動試験、仕様・実装・受入・履歴資料 |
@@ -33,7 +34,7 @@ DB名 `kakeibo-pwa`、版2、17ストア。旧DB版1から非破壊変換しま�
 
 ## PWA更新
 
-アプリシェルは `kakeibo-shell-v13` の範囲別キャッシュを優先し、利用者の明示更新で切り替えます。入力中の強制再読込はしません。manifestのみネットワーク優先（no-store・3秒上限）で、成功したJSONを保存し、失敗時は既存キャッシュを使います。他アプリのキャッシュ/Service Workerを削除しません。
+アプリシェルは `kakeibo-shell-v14` の範囲別キャッシュを優先し、利用者の明示更新で切り替えます。入力中の強制再読込はしません。manifestのみネットワーク優先（no-store・3秒上限）で、成功したJSONを保存し、失敗時は既存キャッシュを使います。他アプリのキャッシュ/Service Workerを削除しません。
 
 インストール登録はブラウザー/OS側の状態も関わります。現在は成功確認あり・再発監視中で、アプリの設定修正だけで恒久解決したとは断定しません。[識別ID](PWA_IDENTITY.md)・[manifest取得](MANIFEST_REFRESH.md)を参照。
 
