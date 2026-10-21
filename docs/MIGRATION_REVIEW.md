@@ -1,5 +1,7 @@
 # 移行レビュー docs-review-1（履歴資料）
 
+> 履歴資料：本文の版・試験数・「未実装/未確認」はその時点の記録です。現在の実装・受入は[IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md)と[TEST_RESULTS_CURRENT](TEST_RESULTS_CURRENT.md)を参照。[文書一覧](INDEX.md)。
+
 > 本文は初回レビュー時点の比較・仮定を保存した履歴。2026-10-19のユーザー承認で原資・精算等を更新した。現行判断は[CARRYOVER_DECISION](CARRYOVER_DECISION.md)とOPEN_QUESTIONSを優先し、本文の「未確定」「正の残額のみ」例を現在の計算へ適用しない。Q-HOLDも承認済み、旧残10件も承認済み。集計期間詳細2件も承認済み。現在の登録済み未確定0件。OPERATIONS_DECISIONとOPEN_QUESTIONS参照。
 
 ## 結果

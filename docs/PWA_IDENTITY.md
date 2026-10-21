@@ -1,5 +1,7 @@
 # PWA識別IDの修正 — 0.4.1-dev
 
+> 本書の見出しの版・導入時の試験数は導入時点の記録です。現行版と実装状況は[IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md)、受入手順は[TEST_CHECKLIST](TEST_CHECKLIST.md)、文書一覧は[INDEX](INDEX.md)を参照。
+
 ## 公開コードの調査結果
 
 2026-10-20 14:46〜14:47 JSTに公開ファイルをHTTP GETで確認。manifestとsw.jsはHTTP200で取得でき、main 13cbdde2ed2c4ec24336b9834361445a09a950bdと同じ設定だった。
@@ -40,7 +42,7 @@ IndexedDB名/版、通常データ、共有家計簿ID、端末ID、バックア
 ## 配信後の確認手順
 
 1. ブラウザーで https://vianeonia.github.io/kakeibo/#settings を開く。
-2. 更新案内が出たら、未保存入力を保存してからアプリの更新操作を行う。設定の表示バージョンが0.4.1-devになったことを確認する。公開配信/CDNやChrome自身のmanifestキャッシュには反映待ちが発生し得る。
+2. 更新案内が出たら、未保存入力を保存してからアプリの更新操作を行う。設定の表示バージョンが最新版（現在0.6.0-dev）であることを確認する。公開配信/CDNやChrome自身のmanifestキャッシュには反映待ちが発生し得る。
 3. 念のためJSONバックアップを端末外にも保存する。
 4. Chromeの「ホーム画面に追加」から追加・起動を確認する。Android WebAPK側の成否は実機で判定する。
 5. 改善しない場合は、Chromeの正確なバージョンと、処理済みmanifestのID・start_url・scopeを確認してブラウザー側と切り分ける。アプリがWebで動く間はそのまま利用できる。

@@ -1,6 +1,6 @@
 # CALCULATION_SPEC — 計算単体仕様 v1
 
-根拠: 承認済みSPEC・OPERATIONS_DECISION・CARRYOVER_DECISION。金額は整数円。UI・DBへ直接アクセスしない計算処理の入出力契約を定義する。実装は未作成。
+根拠: 承認済みSPEC・OPERATIONS_DECISION・CARRYOVER_DECISION。金額は整数円。UI・DBへ直接アクセスしない計算処理の入出力契約を定義する。0.6.0-devではdomain.js/budget.js/goals.js/recurring.jsに実装済み。検証結果は[TEST_RESULTS_CURRENT](TEST_RESULTS_CURRENT.md)を参照。
 
 ## 期間と日付
 
@@ -47,4 +47,4 @@
 
 期間例: 2026/10/25〜11/24は11月分。2026/10/1〜10/31→11/1〜11/24移行→11/25〜12/24で連続。逆方向11/24終了→11/25〜11/30移行→12/1開始も連続。2028/2の31日指定は2/29。2027/2は2/28。端数期間の予算は手動であり自動日割りしない。
 
-検証例は設計レビュー用。アプリ計算関数やDBの動作試験合格を意味しない。
+上記は期待値の定義。実行結果は[自動試験記録](TEST_RESULTS_CURRENT.md)、手動での再現手順は[試験リスト](TEST_CHECKLIST.md)で別管理する。
