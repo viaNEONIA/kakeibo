@@ -1,5 +1,7 @@
 # 根拠と照合記録
 
+> 履歴資料：本文の版・試験数・「未実装/未確認」はその時点の記録です。現在の実装・受入は[IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md)と[TEST_RESULTS_CURRENT](TEST_RESULTS_CURRENT.md)を参照。[文書一覧](INDEX.md)。
+
 一次根拠: ユーザー添付Kakeibo_PWA_v1.3_Work_Migration_20261019.zip。内部のREADME・CHANGELOG・docs内8文書、計10文書をすべて読み取りました。現行ユーザー指示「簡易家計簿PWA 開発管理移行指示書」と併せて確認しました。
 
 添付資料のv1.3仕様・画面・計算式・管理指示を今回の文書基準とします。v1.0〜v1.2は添付CHANGELOGで差分概要を確認済みですが、各版の全文は未取得です。過去原文の全版照合完了とは扱いません。

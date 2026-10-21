@@ -1,6 +1,6 @@
 # STORAGE_PROTOCOL — 保存・重複防止・移行 v1
 
-Issue #3の技術設計。I04で初期化・原子的な保存基盤・設定保存・JSONバックアップ/復元を実装。業務コマンドは後続工程。
+Issue #3の技術設計。I04で保存基盤、I05〜I08で業務コマンドを実装済み。現行0.6.0-dev/DB版2。工程導入時の版1の記録と現行形式を区別する。
 
 ## コマンド保存契約
 
@@ -17,8 +17,8 @@ Issue #3の技術設計。I04で初期化・原子的な保存基盤・設定保
 | 配分/取消/調整 | carryoverEntries、periodClosings、closingRevisions、meta、receipt。予算振分も同境界で読込検証 |
 | 初回締め/再確定/過去再評価 | periods、periodClosings、closingRevisions、carryoverEntries、必要な元データ読込、meta、receipt |
 | 期間設定変更 | periodPolicies、periods、settings、必要な予算データ、meta、receipt |
-| 目標変更/解除 | goalHistory、meta、receipt |
-| 達成通知 | goalHistory/台帳読込、goalNotifications、meta |
+| 目標変更/解除 | goalHistory、必要なgoalNotifications、meta、receipt |
+| 達成通知 | goalHistory/台帳読込、goalNotifications、meta、receipt |
 
 表内のreceiptはoperationReceipts。初期版では関連ストア全体を同一のreadwriteスコープへ含めて競合を直列化してよい。実装時にスコープを狭めても、検証に使った値の競合保護を外さない。
 外部ネットワーク・ユーザーの確認待ち・ファイル読込等は保存開始前に完了させる。トランザクション内でDBと無関係な非同期処理を待たない。アプリ表示用キャッシュを整合性判定の根拠にしない。
@@ -33,7 +33,9 @@ Issue #3の技術設計。I04で初期化・原子的な保存基盤・設定保
 - 他タブへの更新通知は表示更新の補助。永続化と競合防止の正本はDBトランザクションとrevision。
 - JSON復元でdatasetIdを新しい世代として記録し、他タブが旧世代を基に書込むことを拒否する。バックアップ中の元datasetIdは復元監査情報に保持。
 
-## バックアップ形式v1
+## バックアップ形式
+
+現行はdbSchemaVersion=2。未共有はbackupFormatVersion=1、共有は2。家族交換はformat=kakeibo-family/exchangeVersion=1の別形式。以下は初版の外側の構造であり、dbSchemaVersion=1は旧版の値。
 
 JSONの外側: format=kakeibo-pwa、backupFormatVersion=1、dbSchemaVersion=1、createdAt、sourceDatasetId、stores（17ストアの配列）、recordCounts。業務データ・設定・履歴・通知/操作記録を全量含める。metadataは件数・形式の検証用であり改ざん検知の保証とはしない。
 全ストアを同じ読取トランザクションから取得して一貫したスナップショットを作成し、その後JSON化。精算や期間変更の途中状態を混ぜない。
@@ -50,13 +52,19 @@ JSONの外側: format=kakeibo-pwa、backupFormatVersion=1、dbSchemaVersion=1、
 
 ## IndexedDB版の移行
 
-初期版1を作成。以後の変更は旧版→新版の移行を明示し、追加/変換と索引作成を版更新内で扱う。レコードの無言削除・DB全削除による初期化を禁止。失敗時は旧状態を維持しエラー表示。
-別タブが更新を妨げる場合は閉じる/再読込を案内し、強制初期化しない。アプリ資産更新とDB移行を区別し、入力中の強制リロードは禁止。具体コードとブラウザ別検証はI04で実施。
+初期版1を家族共有で版2へ非破壊移行済み。以後の変更も旧版→新版の移行を明示し、追加/変換と索引作成を版更新内で扱う。レコードの無言削除・DB全削除による初期化を禁止。失敗時は旧状態を維持しエラー表示。
+別タブが更新を妨げる場合は閉じる/再読込を案内し、強制初期化しない。アプリ資産更新とDB移行を区別し、入力中の強制リロードは禁止。具体的な実行記録は[TEST_RESULTS_CURRENT](TEST_RESULTS_CURRENT.md)と工程別試験記録を参照。
 
-## 将来実装で必要な検証
+## 必要な検証と結果の参照
 
 全更新箇所への途中失敗、容量不足、二重タップ、2タブ同時操作、古いrevision、復元と他タブ保存の競合、未知形式拒否、一括復元失敗、版更新ブロック、再締め/過去修正の台帳一致を確認する。ここに動作試験結果は含まない。
 
 ## 家族共有の保存プロトコル追補
 
 DB版2へ明示移行。通常収支変更と因果履歴を同じトランザクションで記録し、削除も履歴に残す。共有統合はプレビュー後のdatasetId/datasetRevisionを再検証し、管理データ・取引解決・差額精算・監査・操作履歴を原子的に保存する。子では精算しない。旧バックアップは入力ファイルを変えず版2へ変換。共有状態の通常復元は同一家計簿・元の端末IDを維持。詳細はFAMILY_SHARING参照。
+
+## 現行の補足
+
+目標の初回達成は業務変更と同じトランザクションで記録する。定期確定は暦月キーを照合し、予定/実績/共有イベント/差額再精算/達成記録を原子的に保存する。JSON復元の基本制限に加え、初期状態への親復旧だけを明示条件で許す（[PARENT_RECOVERY](PARENT_RECOVERY.md)）。
+
+保存要求とOSへのファイル保存完了は別であり、保存パネルは完了を推定しない。[自動試験記録](TEST_RESULTS_CURRENT.md)・[実機受入](TEST_CHECKLIST.md)を参照。

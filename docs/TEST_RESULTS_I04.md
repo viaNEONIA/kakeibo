@@ -1,5 +1,7 @@
 # I04 基盤試験記録 — 2026-10-19
 
+> 履歴資料：本文の版・試験数・「未実装/未確認」はその時点の記録です。現在の実装・受入は[IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md)と[TEST_RESULTS_CURRENT](TEST_RESULTS_CURRENT.md)を参照。[文書一覧](INDEX.md)。
+
 対象: 0.1.0-dev、feat/pwa-storage-foundation。コミットはPRのheadを参照。架空データのみ使用。
 
 | 検証 | 環境 | 結果 |

@@ -1,5 +1,7 @@
 # I05 試験結果 — 0.2.0-dev / 2026-10-20
 
+> 履歴資料：本文の版・試験数・「未実装/未確認」はその時点の記録です。現在の実装・受入は[IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md)と[TEST_RESULTS_CURRENT](TEST_RESULTS_CURRENT.md)を参照。[文書一覧](INDEX.md)。
+
 対象ブランチ: feat/transactions-and-categories。コミットは対応PRのheadを参照。架空データのみ使用。
 
 | 検証 | 環境 | 結果 |

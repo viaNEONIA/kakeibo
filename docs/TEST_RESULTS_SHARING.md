@@ -1,5 +1,7 @@
 # 家族共有 試験結果 — 0.4.0-dev / 2026-10-20
 
+> 履歴資料：本文の版・試験数・「未実装/未確認」はその時点の記録です。現在の実装・受入は[IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md)と[TEST_RESULTS_CURRENT](TEST_RESULTS_CURRENT.md)を参照。[文書一覧](INDEX.md)。
+
 ## 環境と結果
 
 Node24.19.0、fake-indexeddb6.2.6、Playwright1.64.1、Chromium153.0.8010.0。全ブラウザー試験は組込HTTPサーバーの /kakeibo/ サブパスで検証。

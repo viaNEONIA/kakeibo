@@ -1,5 +1,7 @@
 # manifest更新取得 — 0.4.3-dev
 
+> 本書の見出しの版・導入時の試験数は導入時点の記録です。現行版と実装状況は[IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md)、受入手順は[TEST_CHECKLIST](TEST_CHECKLIST.md)、文書一覧は[INDEX](INDEX.md)を参照。
+
 ## 確認したコード上の問題
 
 main 36b35867fa32505a521a95e388edcd4aced1a413のService Workerはmanifestをアプリシェルと同じキャッシュ優先で返していた。保存済みのmanifestがあれば、新しいネットワーク応答を取得しない。PWA識別IDは既に /kakeibo/ であり、この変更ではIDを再変更しない。
@@ -36,7 +38,7 @@ Android WebAPKのインストール成功・再発防止は未検証。デスク
 
 ## 配信後の確認
 
-1. アプリの明示更新を行い、設定の表示版が0.4.3-devとなったことを確認する。
+1. アプリの明示更新を行い、設定の表示版が最新版（現在0.6.0-dev）であることを確認する。
 2. Webページを再読み込みし、通常操作とインストール可否を確認する。
 3. 改善しない場合はChromeの正確な版、再読込前後の実際のmanifest/Worker状態を確認して原因を切り分ける。
 

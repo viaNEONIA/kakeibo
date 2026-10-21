@@ -1,4 +1,6 @@
-# JSON保存の再試行
+# JSON/CSV保存と共有の案内
+
+> 本書の見出しの版・導入時の試験数は導入時点の記録です。現行版と実装状況は[IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md)、受入手順は[TEST_CHECKLIST](TEST_CHECKLIST.md)、文書一覧は[INDEX](INDEX.md)を参照。
 
 通常バックアップと家族用ファイルの保存を共通処理にする。従来はDOMへ追加しないリンクを非同期処理後にクリックし、1秒後にURLを破棄していた。これが特定の実機で失敗する原因と断定はしない。
 
@@ -27,10 +29,14 @@
 
 ## 共有失敗時の案内（0.4.7-dev）
 
-Chromiumの[Web Share許可拡張子一覧](https://chromium.googlesource.com/chromium/src/+/HEAD/third_party/blink/renderer/modules/webshare/FILE_TYPES.md)にJSON/application/jsonは含まれていない（2026-10-21確認）。実機の失敗理由の断定には至らないが、アプリ内共有だけを経路にしない。
+Chromiumの[Web Share許可拡張子一覧](https://chromium.googlesource.com/chromium/src/+/HEAD/third_party/blink/renderer/modules/webshare/FILE_TYPES.md)に`.json`（`application/json`）は含まれていない（2026-10-21確認）。実機の失敗理由の断定には至らないが、アプリ内共有だけを経路にしない。
 
 - 端末のファイルアプリ・ダウンロード一覧からJSONを共有する手順を常時表示。保存済みなら再保存不要。
 - canShareが非対応を返す/例外を投げる環境でも、保存リンクと手順は利用可能。
 - AbortErrorは取消として表示。NotAllowedErrorは権限・操作条件・ファイル種類等の制限、TypeErrorは形式非対応等、InvalidStateErrorは共有中等、DataErrorは共有先起動/受渡し失敗として表示。詳細原因を推測で断定せず、生のエラーメッセージや家計簿データは送信・記録しない。
 - 通常の.json/application/jsonの保存を維持し、許可対象への拡張子・MIME偽装やJSONを本文だけで送る代替処理は実施しない。
 - 検証：Node 63件、ブラウザー基盤13件、ファイル保存7件。共有APIはスタブを使って直接操作時の呼出・取消・4種の失敗・非対応/判定例外・保存リンク維持・オフライン保存を検証。Android/iOS実機の共有シートと送信完了は未確認。
+
+## CSVへの適用 — 0.6.0-dev
+
+同じ保存パネルで収支/プールCSVを扱い、リンクと共有手順をCSV表示へ切り替える。JSONを作り直すとJSON表示へ戻る。CSVは集計用で、復元/統合には使用しない。[RECURRING_CSV](RECURRING_CSV.md)参照。

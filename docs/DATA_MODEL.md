@@ -1,10 +1,10 @@
-# DATA_MODEL — IndexedDB物理設計 v1
+# DATA_MODEL — IndexedDB物理設計（現行DB版2）
 
-対象: 正式仕様v1.3と承認済み追補。Issue #3の設計成果物。I04でDB版1の生成とバックアップ/復元基盤を実装済み。業務コマンドは後続。プロダクト仕様はSPEC、OPERATIONS_DECISION、CARRYOVER_DECISIONを優先し、本書は保存方式を定義する。
+対象: 正式仕様v1.3と承認済み追補。Issue #3の設計成果物。I04で版1を導入し、家族共有で版2へ非破壊移行。0.6.0-devでは収支・予算・プール・目標・定期の業務コマンドを実装済み。プロダクト仕様はSPEC、OPERATIONS_DECISION、CARRYOVER_DECISIONを優先し、本書は保存方式を定義する。
 
 ## 型と共通制約
 
-- DB名: kakeibo-pwa、初期DB版1。アプリ版・仕様版・バックアップ形式版とは別管理。
+- DB名: kakeibo-pwa、現行DB版2（初期は版1）。アプリ版・仕様版・バックアップ形式版とは別管理。
 - IDは不変のUUID文字列。複合キーは配列。年月ラベルを主キーに使わない。
 - CivilDate=実在するYYYY-MM-DD、Month=YYYY-MM、業務日付の解釈はAsia/Tokyo。監査時刻はUTCのISO文字列、日付所属を監査時刻から推測しない。
 - moneyは整数円。通常取引amountは1〜999,999,999。予算/振分/配分は非負の安全整数、目標は正の安全整数。台帳増減は符号付き安全整数。計算の各加減算・総和で安全整数範囲を検証し、桁あふれは保存前に拒否する。
@@ -62,7 +62,7 @@ periodClosings.settlementTotalはその期間ですでに反映した精算額�
 
 budgetRevisionsのbefore/afterは{baseBudget,categoryBudgets:[{categoryId,amount}]}。closingRevisionsはcloseRevisionを1から連番で持ち、期間内のpreviousTotal→newTotalの連鎖と最終反映額を復元時に検証する。settings.preferences.valueはstartDayとwarningPercentを含む（初期1と80、注意閾値の入力範囲1〜99%）。optional一意参照はnullでなく未設定フィールドとして扱う。meta.stateにdatasetId/datasetRevision/ledgerSequence、meta.schemaInfo.valueにdbSchemaVersionを保持。復元時はmeta.stateへrestoredFromDatasetId/restoredAtを追加し新世代へ切替。
 
-## I05業務保存の追補
+## I05導入時の業務保存（当時DB版1の記録）
 
 js/domain.jsで項目・並び替え・一覧表示設定と収支の登録/編集/削除を実装。settings.listView.valueは{sort:date-desc|date-asc|amount-desc|amount-asc,showDate:boolean,showCategory:boolean}。旧バックアップでlistViewがない場合は日付新順・日付/項目表示を初期表示として使用する。DB版とバックアップ版は1を維持。
 取引の日付所属は固定periodId、期間生成は欠落なしに接続、前方向追加時の内部sequenceは日付順へ再設定するが既存ID/境界は不変。締め済み期間の修正はclosingRevisionsとsettle差額を原子的に追加し、未精算額を別途保存しない。項目は無効化して参照を残す。
@@ -74,3 +74,7 @@ DB版2。既存17ストア/キー/索引を維持し、meta.state.sharingへ共�
 ## 子の予算仮表示の追加情報 — 0.4.2-dev
 
 meta.state.sharing.confirmedEventIdsは親の最新確定スナップショットで確認済みの変更ID群（任意・一意・events内参照必須）。交換用のparentEventIdsで転送し、子同士の転送でも未確認変更を確認済みに昇格しない。DB版2/通常バックアップ形式2/交換形式1を維持する後方互換の任意フィールド追加。旧共有状態で欠落していれば確認状態不明。仮集計値は保存せず取引と親スナップショットから導出。CHILD_BUDGET_PREVIEW参照。
+
+## I07/I08の現行保存
+
+目標・定期は既存のgoalHistory/goalNotifications/recurringRules/recurringOccurrencesを使用し、DB版2とキーを維持。未保存の定期予定候補は導出し、手動確定時に予定と実績を原子的に保存する。削除済み枠の専用再確定は未提供。通知は設定IDごとに一度。極端な目標不足額のみ保存しないBigInt導出値を使用する。[GOALS](GOALS.md)・[RECURRING_CSV](RECURRING_CSV.md)参照。
