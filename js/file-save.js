@@ -17,9 +17,10 @@ const $ = (id) => document.getElementById(id);
 export function createFileSaver() {
   let url = null,
     file = null,
-    generation = 0;
+    generation = 0,
+    fileKind = "JSON";
   const status = (value, error = false) => {
-    $("file-save-status").textContent = value;
+    $("file-save-status").textContent = value.replaceAll("JSON", fileKind);
     $("file-save-status").classList.toggle("error", error);
   };
   const canShare = () => {
@@ -47,7 +48,7 @@ export function createFileSaver() {
     if (!canShare()) {
       $("file-save-share").hidden = true;
       $("file-share-support").textContent =
-        "この環境ではアプリからのJSON共有を利用できません。保存先から共有してください。";
+        `この環境ではアプリからの${fileKind}共有を利用できません。保存先から共有してください。`;
       return;
     }
     const token = generation,
@@ -73,7 +74,11 @@ export function createFileSaver() {
     }
   });
   return {
-    async export(getData, { label, onPrepared } = {}) {
+    async export(getData, { label, onPrepared, format = "json" } = {}) {
+      fileKind = format === "csv" ? "CSV" : "JSON";
+      for (const el of document.querySelectorAll("[data-file-kind]"))
+        el.textContent = fileKind;
+      $("file-save-link").textContent = fileKind + "を保存";
       const token = ++generation;
       file = null;
       $("file-save-panel").hidden = false;
@@ -85,15 +90,17 @@ export function createFileSaver() {
       $("file-save-panel").scrollIntoView({ block: "center" });
       try {
         const data = await getData();
-        const body = JSON.stringify(data, null, 2),
-          name = jsonFilename(data);
+        const body =
+            format === "csv" ? data.body : JSON.stringify(data, null, 2),
+          name = format === "csv" ? data.name : jsonFilename(data),
+          mime = format === "csv" ? "text/csv" : "application/json";
         if (token !== generation) return;
-        const blob = new Blob([body], { type: "application/json" }),
+        const blob = new Blob([body], { type: mime }),
           previous = url;
         url = URL.createObjectURL(blob);
         file =
           typeof File === "function"
-            ? new File([blob], name, { type: "application/json" })
+            ? new File([blob], name, { type: mime })
             : blob;
         const link = $("file-save-link");
         link.href = url;
@@ -105,6 +112,9 @@ export function createFileSaver() {
         $("file-share-support").textContent = supported
           ? "アプリからの共有も試せますが、ブラウザーや共有先の制限でJSONを渡せない場合があります。その場合は保存先から共有してください。"
           : "この環境ではアプリからのJSON共有を利用できません。上の手順で保存先から共有してください。";
+        $("file-share-support").textContent = $(
+          "file-share-support",
+        ).textContent.replaceAll("JSON", fileKind);
         $("file-save-share").disabled = false;
         if (previous) setTimeout(() => URL.revokeObjectURL(previous), 60000);
         onPrepared?.(data);

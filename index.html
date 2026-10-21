@@ -67,10 +67,16 @@
           <ul id="home-category-warnings"></ul>
         </section>
         <section>
+          <h2>直近の定期収支予定</h2>
+          <p class="hint">今月・翌月の未確定予定を最大8件表示します。その他の月は設定で確認できます。</p>
+          <div id="home-recurring"></div>
+          <a href="#settings">設定で予定を確認・確定</a>
+        </section>
+        <section>
           <h2>最近の記録</h2>
           <div id="recent-list"></div>
           <p class="hint">
-            収支・予算・繰越を管理できます。目標・定期収支・CSVは今後の対応です。
+            収支・予算・繰越・目標を管理できます。定期収支は手動確定し、集計用にCSV出力できます。
           </p>
         </section>
       </section>
@@ -504,25 +510,35 @@
             style="overflow-wrap: anywhere"
           ></p>
           <div class="actions">
-            <a id="file-save-link" href="#" download hidden>JSONを保存</a
+            <a id="file-save-link" href="#" download hidden
+              ><span data-file-kind>JSON</span>を保存</a
             ><button id="file-save-share" type="button" hidden>
               アプリから共有（対応環境）</button
             ><button id="file-save-close" type="button">閉じる</button>
           </div>
           <section id="file-share-help" aria-labelledby="file-share-help-title">
-            <h3 id="file-share-help-title">保存したJSONを共有する手順</h3>
+            <h3 id="file-share-help-title">
+              保存した<span data-file-kind>JSON</span>を共有する手順
+            </h3>
             <ol>
               <li>
-                「JSONを保存」を押し、ダウンロード通知・保存先で保存を確認します。
+                「<span data-file-kind>JSON</span
+                >を保存」を押し、ダウンロード通知・保存先で保存を確認します。
               </li>
               <li>
-                端末の「ファイル」アプリやダウンロード一覧で、上に表示した名前のJSONを選びます。
+                端末の「ファイル」アプリやダウンロード一覧で、上に表示した名前の<span
+                  data-file-kind
+                  >JSON</span
+                >を選びます。
               </li>
               <li>そのファイルの「共有」から、送信先を選びます。</li>
             </ol>
             <p id="file-share-support" class="hint"></p>
             <p class="hint">
-              すでに保存済みなら、同じファイルを再保存する必要はありません。JSONの拡張子や内容は変更しないでください。
+              すでに保存済みなら、同じファイルを再保存する必要はありません。<span
+                data-file-kind
+                >JSON</span
+              >の拡張子や内容は変更しないでください。
             </p>
           </section>
           <p class="hint">
@@ -627,7 +643,7 @@
             </div>
             <div>
               <dt>バージョン</dt>
-              <dd>0.5.0-dev</dd>
+              <dd>0.6.0-dev</dd>
             </div>
             <div>
               <dt>直近のバックアップ準備</dt>
@@ -652,6 +668,87 @@
               /><button id="save" disabled>保存</button>
             </div>
           </form>
+        </section>
+        <section>
+          <details id="recurring-details">
+            <summary>定期収入・支出</summary>
+            <p id="recurring-permission" class="hint"></p>
+            <label
+              >予定月（暦月）<input id="recurring-month" type="month" required
+            /></label>
+            <div id="recurring-schedule"></div>
+            <form id="recurring-form">
+              <h3 id="recurring-form-title">定期収支を追加</h3>
+              <label
+                >種類<select id="recurring-type">
+                  <option value="expense">支出</option>
+                  <option value="income">収入</option>
+                </select></label
+              >
+              <label>名称<input id="recurring-name" required /></label>
+              <label
+                >金額（円）<input
+                  id="recurring-amount"
+                  type="number"
+                  min="1"
+                  max="999999999"
+                  step="1"
+                  inputmode="numeric"
+                  required
+              /></label>
+              <label
+                >項目<select id="recurring-category" required></select
+              ></label>
+              <label
+                >毎月の日付<input
+                  id="recurring-day"
+                  type="number"
+                  min="1"
+                  max="31"
+                  step="1"
+                  value="1"
+                  required
+              /></label>
+              <label
+                >開始月<input id="recurring-start" type="month" required
+              /></label>
+              <label
+                >終了月（空欄は終了なし）<input id="recurring-end" type="month"
+              /></label>
+              <label class="check"
+                ><input
+                  id="recurring-enabled"
+                  type="checkbox"
+                  checked
+                />有効</label
+              >
+              <div class="actions">
+                <button id="recurring-save" class="primary">
+                  定期設定を保存</button
+                ><button id="recurring-cancel" type="button">
+                  入力を取り消す
+                </button>
+              </div>
+            </form>
+            <details>
+              <summary>登録した定期設定</summary>
+              <div id="recurring-rules"></div>
+            </details>
+            <p class="hint">
+              確定後の金額・名称等は収支一覧から編集できます。種類・日付は変更できません。削除した定期実績は自動で再登録しません。
+            </p>
+          </details>
+        </section>
+        <section>
+          <h2>CSV出力</h2>
+          <p>
+            この端末の収支全件と、プールの全期間を別ファイルで出力します。CSVは集計用で、バックアップ・復元用ではありません。
+          </p>
+          <p id="csv-sharing-note" class="hint"></p>
+          <div class="actions">
+            <button id="csv-transactions" data-write>収支CSVを保存</button
+            ><button id="csv-pool" data-write>プール期間別CSVを保存</button>
+          </div>
         </section>
         <section>
           <h2>バックアップと復元</h2>
