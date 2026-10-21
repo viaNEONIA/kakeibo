@@ -1,3 +1,5 @@
+import { Goals } from "./goals.js";
+import { createGoalUI } from "./goal-ui.js";
 import { fileSummary } from "./file-identity.js";
 import { createFileSaver } from "./file-save.js";
 import { canRecoverParent } from "./restore-policy.js";
@@ -19,7 +21,7 @@ import {
 const $ = (id) => document.getElementById(id);
 const fileSaver = createFileSaver();
 const screens = ["home", "budget", "input", "list", "settings"];
-let budgetUI, shareUI;
+let budgetUI, shareUI, goalUI;
 let db,
   ledger,
   current,
@@ -45,7 +47,8 @@ const dirty = () =>
   preferenceDirty ||
   editDirty ||
   categoryDirty ||
-  !!budgetUI?.dirty();
+  !!budgetUI?.dirty() ||
+  !!goalUI?.dirty();
 const categoryGroup = () => (inputType === "income" ? "income" : "expense");
 const activeCategories = (type) =>
   current.categories
@@ -100,6 +103,7 @@ function controls() {
     !ready ||
     (!!pending?.parentRecovery && !$("parent-recovery-confirm").checked);
   budgetUI?.syncEnabled(ready);
+  goalUI?.syncEnabled(ready);
   shareUI?.render(current, ready);
   if (current && isChild(current)) {
     for (const id of [
@@ -647,6 +651,7 @@ for (const [id, key] of [
     else categoryDirty = false;
   });
 async function render(resetView = false) {
+  await new Goals(db).check();
   current = await db.snapshot();
   if (stateOf(current).datasetId !== db.generation) {
     stale();
@@ -762,6 +767,7 @@ async function render(resetView = false) {
   renderCategoryManager();
   renderList();
   budgetUI?.render(current);
+  goalUI?.render(current, canWrite());
   controls();
 }
 $("warning-percent").addEventListener("input", () => {
@@ -848,6 +854,7 @@ $("confirm-restore").addEventListener("click", () =>
     $("transaction-memo").value = "";
     $("restore-dialog").close();
     budgetUI?.reset();
+    goalUI?.reset();
     shareUI?.reset();
     await render(true);
     message(
@@ -876,6 +883,7 @@ $("reload").addEventListener("click", async () => {
       $(id).close();
     $("reload").hidden = true;
     budgetUI?.reset();
+    goalUI?.reset();
     shareUI?.reset();
     await render(true);
     message("最新のデータを読み込みました。");
@@ -947,6 +955,12 @@ async function pwa() {
     );
   }
 }
+goalUI = createGoalUI({
+  getState: () => ({ db, current }),
+  run: action,
+  refresh: render,
+  notify: message,
+});
 budgetUI = createBudgetUI({
   getState: () => ({ db, current }),
   run: action,
@@ -962,6 +976,7 @@ shareUI = createShareUI({
     submission = null;
     $("undo").hidden = true;
     budgetUI?.reset();
+    goalUI?.reset();
     await render(true);
   },
   notify: message,

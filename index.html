@@ -269,6 +269,38 @@
           </section>
         </div>
         <section>
+          <section aria-labelledby="goal-heading">
+            <h2 id="goal-heading">繰越プールの目標</h2>
+            <p id="goal-period-label" class="hint"></p>
+            <p id="goal-status"></p>
+            <p id="goal-achievement" role="status"></p>
+            <p class="hint">
+              確定済みの実残高を使います。子の仮の支出や将来の見込みは含みません。目標不足額はプールの未精算額と別の値です。
+            </p>
+            <form id="goal-form">
+              <label
+                >適用開始期間<select id="goal-period" required></select
+              ></label>
+              <label
+                >目標額（円）<input
+                  id="goal-amount"
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputmode="numeric"
+                  required
+              /></label>
+              <div class="actions">
+                <button id="goal-save" class="primary">目標を保存</button
+                ><button id="goal-clear" type="button">目標を解除</button>
+              </div>
+            </form>
+            <p id="goal-permission" class="hint"></p>
+            <details>
+              <summary>目標の変更・達成履歴</summary>
+              <div id="goal-history"></div>
+            </details>
+          </section>
           <details id="history-details">
             <summary>プールの期間別推移</summary>
             <label
@@ -291,6 +323,9 @@
                     <th>調整</th>
                     <th>残高</th>
                     <th>未精算</th>
+                    <th>当時の目標</th>
+                    <th>達成率</th>
+                    <th>目標不足額</th>
                   </tr>
                 </thead>
                 <tbody id="pool-history"></tbody>
@@ -592,7 +627,7 @@
             </div>
             <div>
               <dt>バージョン</dt>
-              <dd>0.4.7-dev</dd>
+              <dd>0.5.0-dev</dd>
             </div>
             <div>
               <dt>直近のバックアップ準備</dt>

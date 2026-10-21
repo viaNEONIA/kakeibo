@@ -1,6 +1,6 @@
 {
   "name": "kakeibo-pwa",
-  "version": "0.4.7-dev",
+  "version": "0.5.0-dev",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,7 +16,8 @@
     "test:browser:install": "node tests/browser-install.mjs",
     "test:browser:manifest-refresh": "node tests/browser-manifest-refresh.mjs",
     "test:browser:parent-recovery": "node tests/browser-parent-recovery.mjs",
-    "test:browser:file-save": "node tests/browser-file-save.mjs"
+    "test:browser:file-save": "node tests/browser-file-save.mjs",
+    "test:browser:goals": "node tests/browser-goals.mjs"
   },
   "devDependencies": {
     "fake-indexeddb": "^6.2.6",

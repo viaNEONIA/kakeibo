@@ -1,3 +1,4 @@
+import { goalFigures } from "./goals.js";
 import { childBudgetPreview } from "./child-preview.js";
 import { isChild } from "./share-state.js";
 import {
@@ -244,7 +245,8 @@ export function createBudgetUI({ getState, run, refresh, notify }) {
       rows = range === "all" ? all : all.slice(-Number(range));
     $("pool-history").replaceChildren(
       ...rows.map((row) => {
-        const tr = node("tr");
+        const tr = node("tr"),
+          goal = goalFigures(snapshot, row.period.id, row.end);
         for (const value of [
           title(row.period) +
             " " +
@@ -259,6 +261,12 @@ export function createBudgetUI({ getState, run, refresh, notify }) {
           yen(row.adjustment),
           yen(row.end),
           yen(row.unsettled),
+          goal.target === null ? "未設定" : yen(goal.target),
+          goal.rate === null
+            ? "—"
+            : goal.rate.toLocaleString("ja-JP", { maximumFractionDigits: 1 }) +
+              "%",
+          goal.shortfall === null ? "—" : yen(goal.shortfall),
         ])
           tr.append(node("td", value));
         return tr;
