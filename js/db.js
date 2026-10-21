@@ -1,3 +1,4 @@
+import { recordGoalAchievement } from "./goals.js";
 import { canRecoverParent } from "./restore-policy.js";
 import {
   sharing,
@@ -134,6 +135,7 @@ export class Database {
       const before = structuredClone(stores);
       const result = mutate(stores);
       if (!command.startsWith("family-")) recordChanges(before, stores);
+      recordGoalAchievement(stores);
       if (sharing(stores) && !isChild(stores))
         sharing(stores).masterVersion = safeAdd(
           sharing(stores).masterVersion,
