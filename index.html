@@ -471,9 +471,25 @@
           <div class="actions">
             <a id="file-save-link" href="#" download hidden>JSONを保存</a
             ><button id="file-save-share" type="button" hidden>
-              ファイルを共有</button
+              アプリから共有（対応環境）</button
             ><button id="file-save-close" type="button">閉じる</button>
           </div>
+          <section id="file-share-help" aria-labelledby="file-share-help-title">
+            <h3 id="file-share-help-title">保存したJSONを共有する手順</h3>
+            <ol>
+              <li>
+                「JSONを保存」を押し、ダウンロード通知・保存先で保存を確認します。
+              </li>
+              <li>
+                端末の「ファイル」アプリやダウンロード一覧で、上に表示した名前のJSONを選びます。
+              </li>
+              <li>そのファイルの「共有」から、送信先を選びます。</li>
+            </ol>
+            <p id="file-share-support" class="hint"></p>
+            <p class="hint">
+              すでに保存済みなら、同じファイルを再保存する必要はありません。JSONの拡張子や内容は変更しないでください。
+            </p>
+          </section>
           <p class="hint">
             作成時点のデータです。変更後は元の保存ボタンで作り直してください。保存完了はダウンロード通知・ファイルアプリで確認してください。
           </p>
@@ -576,7 +592,7 @@
             </div>
             <div>
               <dt>バージョン</dt>
-              <dd>0.4.6-dev</dd>
+              <dd>0.4.7-dev</dd>
             </div>
             <div>
               <dt>直近のバックアップ準備</dt>
