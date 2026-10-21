@@ -1,3 +1,5 @@
+import { createRecurringUI } from "./recurring-ui.js";
+import { transactionsCsv, poolCsv } from "./csv.js";
 import { Goals } from "./goals.js";
 import { createGoalUI } from "./goal-ui.js";
 import { fileSummary } from "./file-identity.js";
@@ -21,7 +23,7 @@ import {
 const $ = (id) => document.getElementById(id);
 const fileSaver = createFileSaver();
 const screens = ["home", "budget", "input", "list", "settings"];
-let budgetUI, shareUI, goalUI;
+let budgetUI, shareUI, goalUI, recurringUI;
 let db,
   ledger,
   current,
@@ -48,7 +50,8 @@ const dirty = () =>
   editDirty ||
   categoryDirty ||
   !!budgetUI?.dirty() ||
-  !!goalUI?.dirty();
+  !!goalUI?.dirty() ||
+  !!recurringUI?.dirty();
 const categoryGroup = () => (inputType === "income" ? "income" : "expense");
 const activeCategories = (type) =>
   current.categories
@@ -104,6 +107,7 @@ function controls() {
     (!!pending?.parentRecovery && !$("parent-recovery-confirm").checked);
   budgetUI?.syncEnabled(ready);
   goalUI?.syncEnabled(ready);
+  recurringUI?.syncEnabled(ready);
   shareUI?.render(current, ready);
   if (current && isChild(current)) {
     for (const id of [
@@ -768,6 +772,10 @@ async function render(resetView = false) {
   renderList();
   budgetUI?.render(current);
   goalUI?.render(current, canWrite());
+  recurringUI?.render(current, canWrite());
+  $("csv-sharing-note").textContent = isChild(current)
+    ? "収支CSVにはこの端末で保持する未確認の収支も含まれます。プールCSVは親から受け取った確定値です。"
+    : "プールCSVの未締め期間は見込みを含みません。";
   controls();
 }
 $("warning-percent").addEventListener("input", () => {
@@ -785,6 +793,30 @@ $("preferences").addEventListener("submit", (event) => {
     message("設定を保存しました。");
   });
 });
+for (const [id, make, kind] of [
+  ["csv-transactions", transactionsCsv, "収支"],
+  ["csv-pool", poolCsv, "プール期間別"],
+]) {
+  $(id).addEventListener("click", () =>
+    action(async () => {
+      await fileSaver.export(
+        async () => ({
+          body: make(await db.snapshot()),
+          name:
+            "kakeibo-" +
+            kind +
+            "-" +
+            new Date().toISOString().replace(/[:.]/g, "-") +
+            ".csv",
+        }),
+        { format: "csv", label: kind },
+      );
+      message(
+        "CSVを準備しました。保存通知がなければ、表示された保存リンクを直接押してください。",
+      );
+    }),
+  );
+}
 $("backup").addEventListener("click", () =>
   action(async () => {
     await fileSaver.export(() => db.backup(), {
@@ -855,6 +887,7 @@ $("confirm-restore").addEventListener("click", () =>
     $("restore-dialog").close();
     budgetUI?.reset();
     goalUI?.reset();
+    recurringUI?.reset();
     shareUI?.reset();
     await render(true);
     message(
@@ -884,6 +917,7 @@ $("reload").addEventListener("click", async () => {
     $("reload").hidden = true;
     budgetUI?.reset();
     goalUI?.reset();
+    recurringUI?.reset();
     shareUI?.reset();
     await render(true);
     message("最新のデータを読み込みました。");
@@ -955,6 +989,12 @@ async function pwa() {
     );
   }
 }
+recurringUI = createRecurringUI({
+  getState: () => ({ db, current }),
+  run: action,
+  refresh: render,
+  notify: message,
+});
 goalUI = createGoalUI({
   getState: () => ({ db, current }),
   run: action,
@@ -977,6 +1017,7 @@ shareUI = createShareUI({
     $("undo").hidden = true;
     budgetUI?.reset();
     goalUI?.reset();
+    recurringUI?.reset();
     await render(true);
   },
   notify: message,

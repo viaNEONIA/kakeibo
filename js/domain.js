@@ -192,7 +192,7 @@ export function recalculateClosed(
     closing.lastOperationId = operationId;
   }
 }
-function cleanInput(s, input, old) {
+export function cleanInput(s, input, old) {
   assert(
     ["income", "expense", "refund"].includes(input.type),
     "収支の種類を確認してください",
