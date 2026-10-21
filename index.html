@@ -68,7 +68,9 @@
         </section>
         <section>
           <h2>直近の定期収支予定</h2>
-          <p class="hint">今月・翌月の未確定予定を最大8件表示します。その他の月は設定で確認できます。</p>
+          <p class="hint">
+            今月・翌月の未確定予定を最大8件表示します。その他の月は設定で確認できます。
+          </p>
           <div id="home-recurring"></div>
           <a href="#settings">設定で予定を確認・確定</a>
         </section>
@@ -160,6 +162,28 @@
               </div>
             </dl>
             <p id="budget-warning" class="budget-warning" role="status"></p>
+            <section aria-labelledby="budget-planned-title">
+              <h3 id="budget-planned-title">定期予定を含めた参考表示</h3>
+              <p id="budget-planned-source" class="hint"></p>
+              <dl>
+                <div>
+                  <dt>未確定の支出予定</dt>
+                  <dd id="budget-planned-expense"></dd>
+                </div>
+                <div>
+                  <dt>予定反映後の残額</dt>
+                  <dd id="budget-planned-remaining"></dd>
+                </div>
+              </dl>
+              <details>
+                <summary>収入予定（予算へ自動加算しません）</summary>
+                <p id="budget-planned-income"></p>
+                <div id="budget-planned-income-items"></div>
+              </details>
+              <p class="hint">
+                予定日の属する集計期間で集計します。手動確定した分は予定から外れ、実績へ移ります。無効なルール・項目、適用範囲外・削除済みの予定は含みません。プール・月締め・目標判定は確定実績のままです。
+              </p>
+            </section>
             <form id="budget-form">
               <label
                 >基本予算（円）<input
@@ -643,7 +667,7 @@
             </div>
             <div>
               <dt>バージョン</dt>
-              <dd>0.6.0-dev</dd>
+              <dd>0.6.1-dev</dd>
             </div>
             <div>
               <dt>直近のバックアップ準備</dt>

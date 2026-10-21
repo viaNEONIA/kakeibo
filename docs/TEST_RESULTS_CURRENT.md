@@ -1,6 +1,22 @@
-# 現在の試験根拠と受入状況 — 0.6.0-dev
+# 現在の試験根拠と受入状況 — 0.6.1-dev
 
-## 対象と集計の意味
+## 0.6.1-dev 予算の定期予定表示
+
+対象：本変更のPR head（基点main `d47464d33d2949ea6191efa118c4adb68462a676`）。2026-10-22実行。
+
+| コマンド | 結果 |
+| --- | --- |
+| `npm test` | 82件合格（未確定予定の集計・確定移行・除外・親子反映を4件追加） |
+| `npm run test:browser:recurring-preview` | 新表示4群合格 |
+| `npm run test:browser:i06` | 予算/プール8群合格 |
+| `npm run test:browser` | 基盤13群合格 |
+| `npm run test:browser:sharing` | 共有11群合格 |
+| `npm run test:browser:recurring` | 定期/CSV5群合格 |
+| **今回の合計** | **123件/群合格** |
+
+環境：Node24.19.0 / fake-indexeddb6.2.6 / Playwright1.64.1 / Chromium153.0.8010.0（Linux）。二つの暦月にまたがる実期間、短月補正、支出項目別/収入別枠、確定時の予定→実績、除外条件、読取のみ、子の親受信済み表示、オフライン・320/412pxを確認。実機受入は未実施。
+
+## 0.6.0-dev実装時の記録（履歴）
 
 対象実装：[PR #30](https://github.com/viaNEONIA/kakeibo/pull/30)、head `8f8d66707cd58428a415edec43031df3d5e2cd42`、main反映 `27762ae5bc1fd0ea4960fca28ff22eb90b612e66`。下表はその実装時に実行した自動試験の整理です。今回の文書整備で全試験を再実行した記録ではありません。
 
@@ -27,6 +43,8 @@ npm run test:browser:sharing
 npm run test:browser:file-save
 npm run test:browser:goals
 npm run test:browser:recurring
+npm run test:browser:recurring-preview
+npm run test:browser:i06
 ```
 
 Chromiumが既にある場合は各コマンドへ `CHROMIUM_PATH=/path/to/chromium` を指定できます。Playwright同梱ブラウザーと別のブラウザーを使った場合はその版も記録します。

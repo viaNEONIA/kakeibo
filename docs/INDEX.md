@@ -1,13 +1,13 @@
 # 文書一覧
 
-現行アプリは0.6.0-dev。GitHubのmainが正本です。仕様・実装・試験結果・過去記録を区別して読めるよう分類します。
+現行アプリは0.6.1-dev。GitHubのmainが正本です。仕様・実装・試験結果・過去記録を区別して読めるよう分類します。
 
 ## 最初に読む
 
 | 文書 | 用途 |
 | --- | --- |
 | [README](../README.md) | アプリの入口、現在版、基本操作、ファイル用途 |
-| [TEST_CHECKLIST](TEST_CHECKLIST.md) | **52項目の実機試験リスト**。手順・期待値・環境/結果欄 |
+| [TEST_CHECKLIST](TEST_CHECKLIST.md) | **54項目の実機試験リスト**。手順・期待値・環境/結果欄 |
 | [IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md) | 実装済み、受入中、未実装/制限 |
 | [TEST_RESULTS_CURRENT](TEST_RESULTS_CURRENT.md) | 現行実装時の自動試験根拠と実機の未確認範囲 |
 | [OPEN_QUESTIONS](OPEN_QUESTIONS.md) | 未確定、今回の仕様実装差分、確認待ち |

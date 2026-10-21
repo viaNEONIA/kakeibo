@@ -1,3 +1,4 @@
+import { recurringPreview } from "./recurring-preview.js";
 import { goalFigures } from "./goals.js";
 import { childBudgetPreview } from "./child-preview.js";
 import { isChild } from "./share-state.js";
@@ -338,7 +339,8 @@ export function createBudgetUI({ getState, run, refresh, notify }) {
     $("budget-no-period").hidden = !!p;
     if (p) {
       const f = periodFigures(s, p.id),
-        child = childBudgetPreview(s, p.id);
+        child = childBudgetPreview(s, p.id),
+        planned = recurringPreview(s, p.id);
       $("child-budget-preview").hidden = !child;
       if (child) {
         $("child-preview-title").textContent = child.provisional
@@ -396,6 +398,26 @@ export function createBudgetUI({ getState, run, refresh, notify }) {
         "close-projected": f.projectedBalance,
       }))
         $(id).textContent = yen(value);
+      $("budget-planned-expense").textContent = yen(planned.expense);
+      $("budget-planned-remaining").textContent = yen(
+        BigInt(f.remaining) - BigInt(planned.expense),
+      );
+      $("budget-planned-source").textContent = planned.parentSnapshot
+        ? "予定は親から受け取った確定状態に基づきます。実績にはこの端末の未確認入力を含む場合があります。親の最新JSON取込後に予定も更新します。"
+        : "未確定の定期支出だけを予定として表示します。予定反映後の残額は保存済み予算を基準にした参考値です。";
+      $("budget-planned-income").textContent = yen(planned.income);
+      $("budget-planned-income-items").replaceChildren(
+        ...Object.entries(planned.byCategory)
+          .filter(
+            ([id]) => s.categories.find((c) => c.id === id)?.type === "income",
+          )
+          .map(([id, amount]) =>
+            node(
+              "p",
+              s.categories.find((c) => c.id === id).name + "：" + yen(amount),
+            ),
+          ),
+      );
       $("budget-warning").textContent =
         (f.unassigned < 0
           ? "振分超過があります。予算・振分を修正してください。 "
@@ -428,24 +450,34 @@ export function createBudgetUI({ getState, run, refresh, notify }) {
             input.required = true;
             input.dataset.categoryBudget = row.id;
             input.setAttribute("aria-label", row.name + "の予算");
-            const note = node(
-              "small",
-              child
-                ? "親確認済み支出 " +
-                    yen(child.categoryConfirmed[row.id]) +
-                    " ／ 支出" +
-                    (child.provisional ? "（仮）" : "") +
-                    " " +
-                    yen(row.expense) +
-                    " ／ " +
-                    row.warning
-                : "支出 " + yen(row.expense) + " ／ " + row.warning,
-            );
+            const note = node("small");
+            note.dataset.categoryPlan = row.id;
             label.append(text, input, note);
             return label;
           }),
         );
         draftTotal();
+      }
+      for (const row of f.categoryRows) {
+        const note = [
+          ...document.querySelectorAll("[data-category-plan]"),
+        ].find((el) => el.dataset.categoryPlan === row.id);
+        if (!note) continue;
+        const amount = planned.byCategory[row.id] || 0;
+        note.textContent =
+          (child
+            ? "親確認済み支出 " + yen(child.categoryConfirmed[row.id]) + " ／ "
+            : "") +
+          "実績支出" +
+          (child?.provisional ? "（仮）" : "") +
+          " " +
+          yen(row.expense) +
+          " ／ 未確定予定 " +
+          yen(amount) +
+          " ／ 予定反映後の残額 " +
+          yen(BigInt(row.remaining) - BigInt(amount)) +
+          " ／ " +
+          row.warning;
       }
       if (!openingDirty)
         $("opening-amount").value = s.carryoverEntries.find(
