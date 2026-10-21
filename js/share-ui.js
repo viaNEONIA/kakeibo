@@ -1,3 +1,4 @@
+import { fileSummary } from "./file-identity.js";
 import { FamilySharing, pendingSettlements } from "./share.js";
 import { sharing, isChild } from "./share-state.js";
 import { stateOf } from "./schema.js";
@@ -22,8 +23,7 @@ export function createShareUI({
     revision = () => stateOf(getState().current).datasetRevision;
   function save(getData, join = false) {
     return exportFile(getData, {
-      prefix: "kakeibo-family-" + (join ? "join-" : ""),
-      label: join ? "子参加ファイル" : "統合用ファイル",
+      label: join ? "子参加用" : "家族統合用",
     });
   }
   $("family-setup-form").addEventListener("submit", (e) => {
@@ -168,6 +168,15 @@ export function createShareUI({
             members: preview.data.members,
           });
         }
+        $("family-preview").prepend(
+          text("p", fileSummary(data, file.name)),
+          text(
+            "p",
+            mode === "join"
+              ? "操作：新しい子端末として参加します。"
+              : "操作：変更を統合します。バックアップ時点への全量復元ではありません。",
+          ),
+        );
         $("family-dialog").showModal();
       }),
     );

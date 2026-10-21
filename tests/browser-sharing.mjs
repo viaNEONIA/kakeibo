@@ -137,6 +137,20 @@ async function upload(pg, id, data) {
     buffer: Buffer.from(JSON.stringify(data)),
   });
   await pg.locator("#family-dialog").waitFor({ state: "visible" });
+  const summary = await pg.locator("#family-preview").textContent();
+  assert.match(summary, /選択ファイル：family.json.*用途：/);
+  assert.match(summary, /作成元：親・|作成元：子・/);
+  assert.match(summary, /日本時間/);
+  assert(
+    summary.includes(
+      data.bookId ||
+        data.stores.meta.find((r) => r.key === "state").sharing.bookId,
+    ),
+  );
+  const size = pg.viewportSize();
+  await pg.setViewportSize({width:320,height:820});
+  assert(await pg.locator("#family-dialog").evaluate(e => e.scrollWidth <= e.clientWidth));
+  await pg.setViewportSize(size);
   await pg.locator("#family-confirm").click();
   await pg.locator("#family-dialog").waitFor({ state: "hidden" });
 }

@@ -1,3 +1,4 @@
+import { fileSummary } from "./file-identity.js";
 import { createFileSaver } from "./file-save.js";
 import { canRecoverParent } from "./restore-policy.js";
 import { createShareUI } from "./share-ui.js";
@@ -781,8 +782,7 @@ $("preferences").addEventListener("submit", (event) => {
 $("backup").addEventListener("click", () =>
   action(async () => {
     await fileSaver.export(() => db.backup(), {
-      prefix: "kakeibo-backup-",
-      label: "通常バックアップ",
+      label: "復元用バックアップ",
       onPrepared: () => {
         $("last-backup").textContent =
           new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }) +
@@ -814,8 +814,8 @@ $("restore-file").addEventListener("change", () =>
       ? "親として全量復旧"
       : "全量上書きで復元";
     $("restore-summary").textContent =
-      new Date(data.createdAt).toLocaleString("ja-JP") +
-      " 作成・" +
+      fileSummary(data, file.name) +
+      " ／ 全量上書きによる復元です。家族の変更を統合する操作ではありません。収支を含む保存データ総数：" +
       Object.values(data.recordCounts).reduce((a, b) => a + b, 0) +
       "件のデータです。";
     $("restore-dialog").showModal();

@@ -89,6 +89,7 @@ try {
   await page.locator("#backup").click();
   const download = await downloadPromise;
   const backup = JSON.parse(await readFile(await download.path(), "utf8"));
+  assert.match(download.suggestedFilename(), /復元用バックアップ/);
   assert.equal(Object.keys(backup.stores).length, 17);
   assert.equal(backup.stores.settings[0].value.warningPercent, 77);
   check("17-store JSON download");
@@ -103,6 +104,13 @@ try {
     buffer: Buffer.from(JSON.stringify(backup)),
   });
   await page.locator("#restore-dialog").waitFor({ state: "visible" });
+  assert.match(
+    await page.locator("#restore-summary").textContent(),
+    /backup.json.*用途：復元用バックアップ.*全量上書き/,
+  );
+  await page.setViewportSize({width:320,height:820});
+  assert(await page.locator("#restore-dialog").evaluate(e => e.scrollWidth <= e.clientWidth));
+  await page.setViewportSize({width:412,height:820});
   await page.locator("#confirm-restore").click();
   await page.waitForFunction(() =>
     document.getElementById("message").textContent.includes("復元しました"),

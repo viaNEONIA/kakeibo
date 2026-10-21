@@ -137,7 +137,7 @@ try {
   await page.waitForFunction(() =>
     document
       .getElementById("file-save-link")
-      .download.startsWith("kakeibo-family-"),
+      .download.startsWith("kakeibo-家族統合用-"),
   );
   assert.equal((await manualDownload()).format, "kakeibo-family");
   await page.locator("#family-child-name").fill("fixture child");
@@ -145,7 +145,7 @@ try {
   await page.waitForFunction(() =>
     document
       .getElementById("file-save-link")
-      .download.startsWith("kakeibo-family-join-"),
+      .download.startsWith("kakeibo-子参加用-"),
   );
   assert.equal((await manualDownload()).members.length, 2);
   check("family exchange and child invitation use same manual save fallback");

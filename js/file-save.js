@@ -1,3 +1,4 @@
+import { jsonFilename } from "./file-identity.js";
 const $ = (id) => document.getElementById(id);
 export function createFileSaver() {
   let url = null,
@@ -51,7 +52,7 @@ export function createFileSaver() {
     }
   });
   return {
-    async export(getData, { prefix, label, onPrepared } = {}) {
+    async export(getData, { label, onPrepared } = {}) {
       const token = ++generation;
       file = null;
       $("file-save-panel").hidden = false;
@@ -63,7 +64,7 @@ export function createFileSaver() {
       try {
         const data = await getData();
         const body = JSON.stringify(data, null, 2),
-          name = prefix + data.createdAt.replace(/[:.]/g, "-") + ".json";
+          name = jsonFilename(data);
         if (token !== generation) return;
         const blob = new Blob([body], { type: "application/json" }),
           previous = url;
