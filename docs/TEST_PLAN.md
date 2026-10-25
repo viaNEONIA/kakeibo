@@ -1,6 +1,6 @@
 # 受入試験計画 — v1.3＋承認済み追補
 
-現行対象は0.6.0-dev。操作手順・数値・端末別結果欄は[TEST_CHECKLIST](TEST_CHECKLIST.md)、既存の自動試験根拠は[TEST_RESULTS_CURRENT](TEST_RESULTS_CURRENT.md)へ集約します。この文書は試験の範囲と判定基準を定め、合格記録とは区別します。
+現行対象は0.6.1-dev。操作手順・数値・端末別結果欄は[TEST_CHECKLIST](TEST_CHECKLIST.md)、既存の自動試験根拠は[TEST_RESULTS_CURRENT](TEST_RESULTS_CURRENT.md)へ集約します。この文書は試験の範囲と判定基準を定め、合格記録とは区別します。
 
 ## 試験の対応
 
@@ -10,7 +10,7 @@
 | 予算・プール | 収入非連動、正負精算、配分/取消、再締め・過去修正・未精算解消、コピー | B01〜B09 | budget、browser:i06 |
 | 集計期間 | 1〜28日、終了月/実範囲、移行期間、境界と不変ID | B10、R01、C03 | budget/domain、browser:i06 |
 | 目標 | 未設定/正整数/変更/解除、負率/100%超、当時目標、通知一意 | G01〜G06 | goals、browser:goals |
-| 定期 | 予定は実績外、月末/閏年、単回手動確定、設定変更、削除後復活なし | R01〜R07 | recurring-csv、browser:recurring |
+| 定期 | 予定は実績外、月末/閏年、単回手動確定、設定変更、削除後復活なし | R01〜R09 | recurring-csv、browser:recurring |
 | CSV | 別出力、日本語/BOM/引用/改行/数式/数値、範囲と目標/移行ラベル | C01〜C05 | recurring-csv、browser:recurring。Excel実機は別途 |
 | 家族共有 | 親子参加、仮表示、往復、優先順位/因果、親専用精算、削除復活なし | F01〜F10 | sharing、browser:sharing |
 | 保存・PWA | 用途別JSON、全量復元/破損拒否/取消、オフライン/更新保持/インストール | P01〜P06 | storage、各browser/upgrade試験 |
@@ -41,3 +41,5 @@
 必須試験の環境別結果が記録され、重大な計算不整合・データ消失・主要操作不能が0件。未確認や不合格は理由と対応を残します。仕様実装差分D-01〜D-03の扱いも確認する必要があります。現在はI09未完了です。
 
 過去の工程別合格は各TEST_RESULTS_I04/I05/I06/SHARINGに履歴として保持します。結果件数を最新版へ自動流用しません。
+
+予算参考表示はR08/R09で項目別と期間合計・収入別枠・実期間境界・手動確定後の移行を確認し、予定を実績/台帳/目標へ混入させない。自動確認はrecurring-previewとbrowser:recurring-previewを追加。
